@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - BancoUM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="css/logoBanco.png" type="image/png">
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-left">
+            <img src="css/logoBanco.png" alt="BancoUM">
+            <h2>Únete a BancoUM</h2>
+            <p>Abre tu cuenta en minutos y accede a productos financieros diseñados para ti.</p>
+        </div>
+        <div class="auth-right">
+            <div class="auth-box" style="max-width:520px;">
+                <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;color:var(--gray-500);font-size:0.9rem;margin-bottom:24px;">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al inicio
+                </a>
+                <h1>Crear Cuenta</h1>
+                <p class="subtitle">Selecciona el producto que deseas y completa tus datos</p>
+
+                <!-- Step 1: Product Selection -->
+                <div id="step-1">
+                    <label style="font-size:0.85rem;font-weight:600;color:var(--gray-700);margin-bottom:12px;display:block;">¿Qué producto deseas?</label>
+                    <div class="product-selection">
+                        <div class="product-option" data-product="cuenta_ahorros" onclick="selectProduct(this)">
+                            <i class="fa-solid fa-piggy-bank"></i>
+                            <span>Cuenta de Ahorros</span>
+                        </div>
+                        <div class="product-option" data-product="cuenta_corriente" onclick="selectProduct(this)">
+                            <i class="fa-solid fa-building-columns"></i>
+                            <span>Cuenta Corriente</span>
+                        </div>
+                        <div class="product-option" data-product="tarjeta_credito" onclick="selectProduct(this)">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <span>Tarjeta de Crédito</span>
+                        </div>
+                        <div class="product-option" data-product="ahorros_y_tarjeta" onclick="selectProduct(this)">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Ahorros + Tarjeta</span>
+                        </div>
+                        <div class="product-option" data-product="corriente_y_tarjeta" onclick="selectProduct(this)">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Corriente + Tarjeta</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block" id="next-step-btn" disabled onclick="goToStep2()">
+                        Continuar <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Step 2: User Data -->
+                <div id="step-2" style="display:none;">
+                    <form id="register-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre">Nombre</label>
+                                <input type="text" id="nombre" class="form-control" placeholder="Tu nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="apellido">Apellido</label>
+                                <input type="text" id="apellido" class="form-control" placeholder="Tu apellido" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cedula">Cédula</label>
+                            <input type="text" id="cedula" class="form-control" placeholder="Tu número de cédula" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico</label>
+                            <input type="email" id="email" class="form-control" placeholder="correo@ejemplo.com" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="telefono">Teléfono</label>
+                                <input type="tel" id="telefono" class="form-control" placeholder="300 123 4567">
+                            </div>
+                            <div class="form-group">
+                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                <input type="date" id="fecha_nacimiento" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="direccion">Dirección</label>
+                            <input type="text" id="direccion" class="form-control" placeholder="Tu dirección">
+                        </div>
+
+                        <!-- Password fields -->
+                        <div id="password-fields">
+                            <div class="form-group">
+                                <label for="password">Contraseña de Acceso al Sistema</label>
+                                <input type="password" id="password" class="form-control" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                                <p class="form-hint">Para ingresar a tu cuenta en BancoUM</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="password2">Confirmar Contraseña del Sistema</label>
+                                <input type="password" id="password2" class="form-control" placeholder="Repite la contraseña" minlength="6" required>
+                            </div>
+                        </div>
+
+                        <!-- Card PIN -->
+                        <div id="card-password-fields" style="display:none; margin-top:16px; border-top:1px solid var(--gray-200); padding-top:16px;">
+                            <div class="form-group">
+                                <label for="pin_tarjeta">PIN de Tarjeta de Crédito (4 dígitos)</label>
+                                <input type="password" id="pin_tarjeta" class="form-control" placeholder="Ej: 1234" pattern="[0-9]{4}" maxlength="4">
+                                <p class="form-hint" style="color:var(--warning);margin-top:4px;font-size:0.8rem;">Obligatorio para pre-configurar tu nueva tarjeta.</p>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:12px;margin-top:8px;">
+                            <button type="button" class="btn btn-outline" onclick="goBack()" style="flex:1;">
+                                <i class="fa-solid fa-arrow-left"></i> Volver
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="register-btn" style="flex:2;">
+                                <i class="fa-solid fa-user-plus"></i> Registrarme
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div id="step-3" style="display:none;">
+                    <div style="text-align:center;padding:30px 0;">
+                        <i class="fa-solid fa-circle-check" style="font-size:4rem;color:var(--success);margin-bottom:20px;display:block;"></i>
+                        <h2 style="margin-bottom:12px;color:var(--black);">¡Registro exitoso!</h2>
+                        <p style="color:var(--gray-500);margin-bottom:24px;">Tu solicitud será revisada por nuestro equipo. Recibirás un correo electrónico con las instrucciones para activar tu cuenta.</p>
+                        <a href="login.html" class="btn btn-primary btn-lg">Ir a Iniciar Sesión</a>
+                    </div>
+                </div>
+
+                <p style="text-align:center;margin-top:24px;color:var(--gray-500);font-size:0.9rem;" id="login-link">
+                    ¿Ya tienes cuenta? <a href="login.html" style="color:var(--primary);font-weight:600;">Inicia sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let selectedProduct = null;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const iconClass = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info');
+            toast.innerHTML = `<i class="fa-solid ${iconClass}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        function selectProduct(el) {
+            document.querySelectorAll('.product-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedProduct = el.dataset.product;
+            document.getElementById('next-step-btn').disabled = false;
+        }
+
+        function goToStep2() {
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+
+            // Show card pin if requested card
+            const pinContainer = document.getElementById('card-password-fields');
+            const pinInput = document.getElementById('pin_tarjeta');
+            
+            if (selectedProduct.includes('tarjeta')) {
+                pinContainer.style.display = 'block';
+                pinInput.setAttribute('required', 'true');
+            } else {
+                pinContainer.style.display = 'none';
+                pinInput.removeAttribute('required');
+            }
+        }
+
+        function goBack() {
+            document.getElementById('step-2').style.display = 'none';
+            document.getElementById('step-1').style.display = 'block';
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('register-btn');
+
+            // SYSTEM PW Validation
+            const pw = document.getElementById('password').value;
+            const pw2 = document.getElementById('password2').value;
+            if (pw !== pw2) {
+                showToast('Las contraseñas de acceso no coinciden', 'error');
+                return;
+            }
+            if (pw.length < 6) {
+                showToast('La contraseña de acceso debe tener al menos 6 caracteres', 'error');
+                return;
+            }
+
+            // PIN Validation
+            if (selectedProduct.includes('tarjeta')) {
+                const pin = document.getElementById('pin_tarjeta').value;
+                if (!/^[0-9]{4}$/.test(pin)) {
+                    showToast('El PIN de la tarjeta debe ser exactamente de 4 dígitos numéricos', 'error');
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
+
+            try {
+                const body = {
+                    cedula: document.getElementById('cedula').value.trim(),
+                    nombre: document.getElementById('nombre').value.trim(),
+                    apellido: document.getElementById('apellido').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    telefono: document.getElementById('telefono').value.trim(),
+                    direccion: document.getElementById('direccion').value.trim(),
+                    fecha_nacimiento: document.getElementById('fecha_nacimiento').value || null,
+                    tipo_producto: selectedProduct,
+                    password: pw
+                };
+
+                if (selectedProduct.includes('tarjeta')) {
+                    body.pin_tarjeta = document.getElementById('pin_tarjeta').value;
+                }
+
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                document.getElementById('step-2').style.display = 'none';
+                document.getElementById('step-3').style.display = 'block';
+                document.getElementById('login-link').style.display = 'none';
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Registrarme';
+            }
+        });
+    </script>
+</body>
+</html>

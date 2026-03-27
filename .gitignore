@@ -1,0 +1,10 @@
+node_modules/
+.env
+.DS_Store
+db-test.js
+list-tables.js
+check-schema.js
+check-schema2.js
+list-cols.js
+migrate-cuotas.js
+add-viewport.js

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cuenta - BancoUM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="css/logoBanco.png" type="image/png">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="css/logoBanco.png" alt="BancoUM">
+                <h2>BancoUM</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul id="main-nav">
+                    <li class="nav-item active" data-view="inicio">
+                        <i class="fa-solid fa-house"></i><span>Inicio</span>
+                    </li>
+                    <li class="nav-item" data-view="productos">
+                        <i class="fa-solid fa-wallet"></i><span>Mis Productos</span>
+                    </li>
+                    <li class="nav-item" data-view="transferencias">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i><span>Transferencias</span>
+                    </li>
+                    <li class="nav-item" data-view="historial">
+                        <i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span>
+                    </li>
+                    <li class="nav-item" data-view="pago-credito">
+                        <i class="fa-solid fa-credit-card"></i><span>Pago Crédito</span>
+                    </li>
+                    <li class="nav-item" data-view="notificaciones">
+                        <i class="fa-solid fa-bell"></i><span>Notificaciones</span>
+                        <span class="badge-count" id="notif-badge" style="display:none;">0</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar" id="user-avatar">U</div>
+                    <div class="details">
+                        <span class="name" id="user-name-display">Usuario</span>
+                        <span class="role">Cliente</span>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <button class="menu-toggle" id="menu-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <span class="topbar-title" id="topbar-title">Inicio</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" onclick="navigate('notificaciones')">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notif-dot" id="notif-dot" style="display:none;"></span>
+                    </button>
+                </div>
+            </header>
+            <div id="view-container" class="view-container"></div>
+        </main>
+    </div>
+
+    <!-- Security Password Modal -->
+    <div class="modal-overlay" id="security-modal" style="z-index: 999999;">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-shield-halved"></i> Contraseña de Seguridad</h3>
+                <button class="close-modal" onclick="closeSecurityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--gray-500);margin-bottom:16px;">Ingresa tu contraseña de seguridad para confirmar esta operación.</p>
+                <div class="form-group">
+                    <input type="password" id="security-password-input" class="form-control" placeholder="Contraseña de seguridad">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeSecurityModal()">Cancelar</button>
+                <button class="btn btn-primary" id="security-confirm-btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activate Credit Card Modal -->
+    <div class="modal-overlay" id="activate-card-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-credit-card"></i> Activar Tarjeta</h3>
+                <button class="close-modal" onclick="closeModal('activate-card-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--gray-500);margin-bottom:16px;">Crea una contraseña exclusiva para pagos con tu tarjeta de crédito.</p>
+                <div class="form-group">
+                    <label>Contraseña de Pagos</label>
+                    <input type="password" id="card-password" class="form-control" placeholder="Mínimo 4 caracteres" minlength="4">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Contraseña</label>
+                    <input type="password" id="card-password2" class="form-control" placeholder="Repite la contraseña">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('activate-card-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="activate-card-btn">Activar Tarjeta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Product Modal -->
+    <div class="modal-overlay" id="request-product-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-plus-circle"></i> Solicitar Nuevo Producto</h3>
+                <button class="close-modal" onclick="closeModal('request-product-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--gray-500);margin-bottom:16px;">Selecciona el producto que deseas solicitar. Tu petición será evaluada por el banco.</p>
+                <div class="form-group">
+                    <label>Tipo de Producto</label>
+                    <select class="form-control" id="new-product-type">
+                        <option value="cuenta_ahorros">Cuenta de Ahorros</option>
+                        <option value="cuenta_corriente">Cuenta Corriente</option>
+                        <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('request-product-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="request-product-btn">Enviar Solicitud</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Avance Modal -->
+    <div class="modal-overlay" id="avance-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-money-bill-transfer"></i> Realizar Avance</h3>
+                <button class="close-modal" onclick="closeModal('avance-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--gray-500);margin-bottom:16px;">Retira dinero de tu tarjeta de crédito transfiriéndolo a una cuenta de ahorros o corriente.</p>
+                <div class="form-group">
+                    <label>Cupo Disponible</label>
+                    <input type="text" id="avance-cupo" class="form-control" readonly style="background:var(--gray-100);">
+                </div>
+                <div class="form-group">
+                    <label>Cuenta Destino</label>
+                    <select class="form-control" id="avance-destino">
+                        <option value="">-- Cajero / Efectivo --</option>
+                    </select>
+                </div>
+                <div class="form-group" id="avance-destino-extra" style="display:none;">
+                    <label>Número de Cuenta (Terceros)</label>
+                    <input type="text" id="avance-cuenta-terceros" class="form-control" placeholder="Ej: 202612345678">
+                </div>
+                <div class="form-group">
+                    <label>Monto del Avance</label>
+                    <input type="number" id="avance-monto" class="form-control" placeholder="0.00" min="1" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Cuotas (1 a 36)</label>
+                    <input type="number" id="avance-cuotas" class="form-control" value="1" min="1" max="36">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock" style="margin-right:6px;color:var(--primary);"></i>PIN de tu Tarjeta de Crédito</label>
+                    <input type="password" id="avance-pin" class="form-control" placeholder="Contraseña de la tarjeta" maxlength="4">
+                </div>
+                <div id="avance-error" style="display:none;color:var(--danger);font-size:0.88rem;margin-top:8px;padding:10px;background:#fff0f0;border-radius:8px;border-left:3px solid var(--danger);"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('avance-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="avance-btn">Solicitar Avance</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    const API_URL = 'http://localhost:3000/api';
+    const token = localStorage.getItem('bancoum_token');
+    const user = JSON.parse(localStorage.getItem('bancoum_user') || '{}');
+
+    if (!token || !user.id || user.rol === 'superadmin') {
+        window.location.href = 'login.html';
+    }
+
+    let userData = null;
+    let userAccounts = [];
+    let securityCallback = null;
+
+    // === UTILS ===
+    function showToast(msg, type = 'success') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        const ic = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+        t.innerHTML = `<i class="fa-solid ${ic}"></i><span>${msg}</span>`;
+        c.appendChild(t);
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 4000);
+    }
+
+    function formatCurrency(amt) {
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(amt);
+    }
+
+    function formatDate(d) {
+        if (!d) return '-';
+        return new Intl.DateTimeFormat('es-CO', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }).format(new Date(d));
+    }
+
+    async function apiFetch(endpoint, options = {}) {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            ...options,
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...options.headers }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error');
+        return data;
+    }
+
+    function logout() {
+        localStorage.removeItem('bancoum_token');
+        localStorage.removeItem('bancoum_user');
+        window.location.href = 'login.html';
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    // === SECURITY PASSWORD ===
+    function requestSecurityPassword(callback) {
+        securityCallback = callback;
+        document.getElementById('security-password-input').value = '';
+        document.getElementById('security-modal').classList.add('active');
+    }
+    function closeSecurityModal() { closeModal('security-modal'); securityCallback = null; }
+    document.getElementById('security-confirm-btn').addEventListener('click', () => {
+        const pw = document.getElementById('security-password-input').value;
+        if (!pw) { showToast('Ingresa la contraseña', 'error'); return; }
+        closeSecurityModal();
+        if (securityCallback) securityCallback(pw);
+    });
+
+    // === NAVIGATION ===
+    const titles = {
+        inicio: 'Inicio', productos: 'Mis Productos', transferencias: 'Transferencias',
+        historial: 'Historial', 'pago-credito': 'Pago de Crédito', notificaciones: 'Notificaciones'
+    };
+
+    function navigate(view) {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[data-view="${view}"]`);
+        if (active) active.classList.add('active');
+        document.getElementById('topbar-title').textContent = titles[view] || view;
+        if (window.innerWidth <= 992) {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.remove('active');
+        }
+        renderView(view);
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => navigate(item.dataset.view));
+    });
+    document.getElementById('menu-toggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebar-overlay').classList.toggle('active');
+    });
+    document.getElementById('sidebar-overlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('active');
+    });
+
+    // === VIEWS ===
+    async function renderView(view) {
+        const container = document.getElementById('view-container');
+        container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
+        try {
+            switch(view) {
+                case 'inicio': await renderInicio(container); break;
+                case 'productos': await renderProductos(container); break;
+                case 'transferencias': await renderTransferencias(container); break;
+                case 'historial': await renderHistorial(container); break;
+                case 'pago-credito': await renderPagoCredito(container); break;
+                case 'notificaciones': await renderNotificaciones(container); break;
+                default: container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-hammer"></i><h2>En construcción</h2></div>';
+            }
+        } catch(e) { container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>${e.message}</p></div>`; }
+    }
+
+    async function loadUserData() {
+        userData = await apiFetch('/auth/me');
+        userAccounts = userData.cuentas || [];
+    }
+
+    // --- INICIO ---
+    async function renderInicio(c) {
+        await loadUserData();
+        const savings = userAccounts.filter(a => a.tipo !== 'TARJETA_CREDITO');
+        const credits = userAccounts.filter(a => a.tipo === 'TARJETA_CREDITO');
+        const totalBalance = savings.reduce((s, a) => s + Number(a.saldo || 0), 0);
+
+        c.innerHTML = `
+            <div class="fade-in-up">
+                <h2 style="font-size:1.6rem;font-weight:800;margin-bottom:4px;">Hola, ${userData.nombre} 👋</h2>
+                <p style="color:var(--gray-500);margin-bottom:28px;">Bienvenido de vuelta a BancoUM</p>
+                
+                ${savings.length > 0 ? savings.map(a => `
+                    <div class="account-card">
+                        <div class="account-type">${a.tipo}</div>
+                        <div class="account-number">N° ${a.numero_cuenta}</div>
+                        <div class="account-balance-label">Saldo disponible</div>
+                        <div class="account-balance">${formatCurrency(a.saldo)}</div>
+                    </div>
+                `).join('') : ''}
+
+                ${credits.length > 0 ? credits.map(a => `
+                    <div class="account-card credit-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div class="account-type">TARJETA DE CRÉDITO</div>
+                            <span class="badge ${a.activa ? 'badge-success' : 'badge-warning'}">${a.activa ? 'Activa' : 'Inactiva'}</span>
+                        </div>
+                        <div class="account-number">N° ${a.numero_cuenta}</div>
+                        <div style="display:flex;gap:30px;">
+                            <div>
+                                <div class="account-balance-label">Cupo disponible</div>
+                                <div class="account-balance" style="font-size:1.4rem;">${formatCurrency(a.cupo_disponible)}</div>
+                            </div>
+                            <div>
+                                <div class="account-balance-label">Cupo total</div>
+                                <div class="account-balance" style="font-size:1.4rem;">${formatCurrency(a.cupo_total)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : ''}
+
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="navigate('transferencias')">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i><span>Transferir</span>
+                    </div>
+                    <div class="quick-action" onclick="navigate('historial')">
+                        <i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span>
+                    </div>
+                    <div class="quick-action" onclick="navigate('productos')">
+                        <i class="fa-solid fa-wallet"></i><span>Productos</span>
+                    </div>
+                    <div class="quick-action" onclick="navigate('notificaciones')">
+                        <i class="fa-solid fa-bell"></i><span>Notificaciones</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- PRODUCTOS ---
+    async function renderProductos(c) {
+        await loadUserData();
+        const savings = userAccounts.filter(a => a.tipo !== 'TARJETA_CREDITO');
+        const credits = userAccounts.filter(a => a.tipo === 'TARJETA_CREDITO');
+
+        c.innerHTML = `
+            <div class="fade-in-up">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Mis Productos</h2>
+                    <button class="btn btn-primary btn-sm" onclick="showRequestProductModal()"><i class="fa-solid fa-plus"></i> Solicitar Nuevo Producto</button>
+                </div>
+                ${savings.length > 0 ? `
+                    <h3 style="font-size:1rem;color:var(--gray-500);margin-bottom:12px;">Cuentas</h3>
+                    ${savings.map(a => `
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <span class="badge badge-success">${a.tipo}</span>
+                                    <h3 style="margin-top:8px;">N° ${a.numero_cuenta}</h3>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:0.75rem;color:var(--gray-400);text-transform:uppercase;">Saldo</div>
+                                    <div style="font-size:1.5rem;font-weight:800;color:var(--primary);">${formatCurrency(a.saldo)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                ` : '<p style="color:var(--gray-400);margin-bottom:20px;">No tienes cuentas de ahorro/corriente</p>'}
+
+                ${credits.length > 0 ? `
+                    <h3 style="font-size:1rem;color:var(--gray-500);margin:20px 0 12px;">Tarjetas de Crédito</h3>
+                    ${credits.map(a => `
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                <div>
+                                    <span class="badge badge-info">TARJETA CRÉDITO</span>
+                                    <span class="badge ${a.activa ? 'badge-success' : 'badge-warning'}" style="margin-left:6px;">${a.activa ? 'Activa' : 'Pendiente'}</span>
+                                    <h3 style="margin-top:8px;">N° ${a.numero_cuenta}</h3>
+                                </div>
+                                <div>
+                                    ${!a.activa ? `<button class="btn btn-primary btn-sm" onclick="showActivateCard(${a.id})"><i class="fa-solid fa-check"></i> Activar</button>` : `<button class="btn btn-outline btn-sm" style="border-color:var(--primary);color:var(--primary);" onclick="showAvanceModal(${a.id}, ${a.cupo_disponible})"><i class="fa-solid fa-money-bill-transfer"></i> Avance</button>`}
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:30px;">
+                                <div>
+                                    <div style="font-size:0.75rem;color:var(--gray-400);text-transform:uppercase;">Cupo Disponible</div>
+                                    <div style="font-size:1.3rem;font-weight:700;color:var(--success);">${formatCurrency(a.cupo_disponible)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;color:var(--gray-400);text-transform:uppercase;">Cupo Total</div>
+                                    <div style="font-size:1.3rem;font-weight:700;color:var(--black);">${formatCurrency(a.cupo_total)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;color:var(--gray-400);text-transform:uppercase;">Usado</div>
+                                    <div style="font-size:1.3rem;font-weight:700;color:var(--danger);">${formatCurrency(a.cupo_total - a.cupo_disponible)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                ` : ''}
+            </div>
+        `;
+    }
+
+    let activatingCardId = null;
+    function showActivateCard(id) {
+        activatingCardId = id;
+        document.getElementById('card-password').value = '';
+        document.getElementById('card-password2').value = '';
+        document.getElementById('activate-card-modal').classList.add('active');
+    }
+    document.getElementById('activate-card-btn').addEventListener('click', async () => {
+        const pw = document.getElementById('card-password').value;
+        const pw2 = document.getElementById('card-password2').value;
+        if (pw !== pw2) { showToast('Las contraseñas no coinciden', 'error'); return; }
+        if (pw.length < 4) { showToast('Mínimo 4 caracteres', 'error'); return; }
+        try {
+            await apiFetch(`/credito/activar/${activatingCardId}`, {
+                method: 'POST', body: JSON.stringify({ password_pagos: pw })
+            });
+            showToast('¡Tarjeta activada exitosamente!');
+            closeModal('activate-card-modal');
+            navigate('productos');
+        } catch(e) { showToast(e.message, 'error'); }
+    });
+
+    // Request new product flow
+    window.showRequestProductModal = function() {
+        document.getElementById('request-product-modal').classList.add('active');
+    };
+
+    document.getElementById('request-product-btn').addEventListener('click', async () => {
+        const type = document.getElementById('new-product-type').value;
+        const btn = document.getElementById('request-product-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+        
+        try {
+            const res = await apiFetch('/solicitudes/existente', {
+                method: 'POST',
+                body: JSON.stringify({ tipo_producto: type })
+            });
+            showToast(res.message);
+            closeModal('request-product-modal');
+        } catch(e) {
+            showToast(e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Enviar Solicitud';
+        }
+    });
+
+    // Avance de Tarjeta logic
+    let currentAvanceCardId = null;
+
+    window.showAvanceModal = function(id, disp) {
+        currentAvanceCardId = id;
+        document.getElementById('avance-cupo').value = formatCurrency(disp);
+        document.getElementById('avance-monto').value = '';
+        
+        // Populate savings accounts
+        const sel = document.getElementById('avance-destino');
+        sel.innerHTML = '<option value="">-- Cajero / Efectivo --</option>';
+        sel.innerHTML += '<option value="terceros">-- Transferir a otra cuenta --</option>';
+        userAccounts.forEach(a => {
+            if(a.tipo !== 'TARJETA_CREDITO' && a.activa) {
+                sel.innerHTML += `<option value="${a.id}">${a.tipo} - ${a.numero_cuenta} (Propia)</option>`;
+            }
+        });
+        
+        sel.onchange = () => {
+            document.getElementById('avance-destino-extra').style.display = sel.value === 'terceros' ? 'block' : 'none';
+        };
+        sel.onchange();
+        
+        document.getElementById('avance-modal').classList.add('active');
+    };
+
+    document.getElementById('avance-btn').addEventListener('click', async () => {
+        const monto = parseFloat(document.getElementById('avance-monto').value);
+        const destId = document.getElementById('avance-destino').value;
+        const numTercero = destId === 'terceros' ? document.getElementById('avance-cuenta-terceros').value.trim() : null;
+        const cuotas = parseInt(document.getElementById('avance-cuotas').value) || 1;
+        const pin = document.getElementById('avance-pin').value.trim();
+        const errBox = document.getElementById('avance-error');
+        const btn = document.getElementById('avance-btn');
+
+        errBox.style.display = 'none';
+
+        if (!monto || monto <= 0) { errBox.textContent = 'Ingresa un monto válido'; errBox.style.display='block'; return; }
+        if (destId === 'terceros' && !numTercero) { errBox.textContent = 'Ingresa el número de cuenta destino'; errBox.style.display='block'; return; }
+        if (cuotas < 1 || cuotas > 36) { errBox.textContent = 'Las cuotas deben ser entre 1 y 36'; errBox.style.display='block'; return; }
+        if (!pin) { errBox.textContent = 'Ingresa el PIN de tu tarjeta'; errBox.style.display='block'; return; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+
+        try {
+            const res = await apiFetch('/credito/avance', {
+                method: 'POST',
+                body: JSON.stringify({
+                    tarjeta_id: currentAvanceCardId,
+                    cuenta_destino_id: (destId && destId !== 'terceros') ? parseInt(destId) : null,
+                    cuenta_destino_numero: numTercero,
+                    monto: monto,
+                    cuotas: cuotas,
+                    password_seguridad: pin
+                })
+            });
+            closeModal('avance-modal');
+            showToast('¡Avance realizado exitosamente!', 'success');
+            navigate('productos');
+        } catch(e) {
+            errBox.textContent = e.message || 'Error al procesar el avance';
+            errBox.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Solicitar Avance';
+        }
+    });
+
+    // --- TRANSFERENCIAS ---
+    async function renderTransferencias(c) {
+        await loadUserData();
+        const savings = userAccounts.filter(a => a.tipo !== 'TARJETA_CREDITO' && a.activa);
+        
+        if (savings.length === 0) {
+            c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-wallet"></i><h2>Sin cuentas activas</h2><p>No tienes cuentas de ahorro/corriente para transferir.</p></div>';
+            return;
+        }
+
+        c.innerHTML = `
+            <div class="fade-in-up" style="max-width:600px;">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Nueva Transferencia</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Cuenta Origen</label>
+                        <select class="form-control" id="transfer-origin">
+                            ${savings.map(a => `<option value="${a.id}">${a.tipo} - ${a.numero_cuenta} (${formatCurrency(a.saldo)})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Número de Cuenta Destino</label>
+                        <input type="text" class="form-control" id="transfer-dest" placeholder="Número de cuenta del beneficiario">
+                    </div>
+                    <div class="form-group">
+                        <label>Monto</label>
+                        <input type="number" class="form-control" id="transfer-amount" placeholder="0.00" min="1" step="0.01">
+                    </div>
+                    <button class="btn btn-primary btn-block btn-lg" onclick="doTransfer()">
+                        <i class="fa-solid fa-paper-plane"></i> Transferir
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function doTransfer() {
+        const dest = document.getElementById('transfer-dest').value.trim();
+        const amount = parseFloat(document.getElementById('transfer-amount').value);
+        const originId = document.getElementById('transfer-origin').value;
+        if (!dest || !amount || amount <= 0) { showToast('Completa todos los campos', 'error'); return; }
+
+        requestSecurityPassword(async (pw) => {
+            try {
+                await apiFetch('/transferencias', {
+                    method: 'POST',
+                    body: JSON.stringify({ cuenta_origen_id: originId, cuenta_destino_num: dest, monto: amount, password_seguridad: pw })
+                });
+                showToast('¡Transferencia exitosa!');
+                navigate('inicio');
+            } catch(e) { showToast(e.message, 'error'); }
+        });
+    }
+
+    // --- HISTORIAL ---
+    async function renderHistorial(c) {
+        const movements = await apiFetch('/transferencias/historial');
+        if (movements.length === 0) {
+            c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><h2>Sin movimientos</h2><p>Aún no tienes movimientos registrados.</p></div>';
+            return;
+        }
+
+        c.innerHTML = `
+            <div class="fade-in-up">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Historial de Movimientos</h2>
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Fecha</th><th>Tipo</th><th>Origen</th><th>Destino</th><th>Valor</th></tr></thead>
+                            <tbody>
+                                ${movements.map(m => `
+                                    <tr>
+                                        <td>${formatDate(m.fecha)}</td>
+                                        <td><span class="badge ${m.tipo === 'TRANSFERENCIA' ? 'badge-info' : m.tipo === 'CONSIGNACION' ? 'badge-success' : 'badge-warning'}">${m.tipo}</span></td>
+                                        <td>${m.cuenta_origen || '-'}<br><small style="color:var(--gray-400);">${m.nombre_origen || ''}</small></td>
+                                        <td>${m.cuenta_destino || '-'}<br><small style="color:var(--gray-400);">${m.nombre_destino || ''}</small></td>
+                                        <td style="font-weight:700;">${formatCurrency(m.valor)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- PAGO CREDITO ---
+    async function renderPagoCredito(c) {
+        await loadUserData();
+        const credits = userAccounts.filter(a => a.tipo === 'TARJETA_CREDITO' && a.activa);
+        const savings = userAccounts.filter(a => a.tipo !== 'TARJETA_CREDITO' && a.activa);
+
+        if (credits.length === 0) {
+            c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-credit-card"></i><h2>Sin tarjetas activas</h2><p>No tienes tarjetas de crédito activas para pagar.</p></div>';
+            return;
+        }
+
+        if (savings.length === 0) {
+            c.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <h2>Pago en sucursal</h2>
+                    <p>No tienes cuenta de ahorros asociada. Debes realizar el pago de tu tarjeta de crédito en una sucursal de BancoUM.</p>
+                </div>`;
+            return;
+        }
+
+        c.innerHTML = `
+            <div class="fade-in-up" style="max-width:600px;">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Pagar Tarjeta de Crédito</h2>
+                
+                <div class="card">
+                    <div class="form-group">
+                        <label>Selecciona Tarjeta</label>
+                        <select class="form-control" id="pay-card" onchange="loadCreditDebt()">
+                            <!-- Las opciones se cargan dinámicamente -->
+                            ${credits.map(a => `<option value="${a.id}">${a.numero_cuenta}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div id="debt-loading" style="text-align:center; padding:20px; color:var(--primary); display:none;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Calculando deuda...
+                    </div>
+
+                    <div id="debt-info" style="display:none; margin-bottom:20px;">
+                        <div style="background:var(--gray-50); padding:16px; border-radius:8px; border:1px solid var(--gray-200);">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <span style="color:var(--gray-500);">Deuda Total</span>
+                                <span id="debt-total" style="font-weight:800; font-size:1.4rem; color:var(--danger);">$0</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:4px;">
+                                <span style="color:var(--gray-500);">Pago Mínimo Sugerido</span>
+                                <span id="debt-min" style="font-weight:600;">$0</span>
+                            </div>
+                            <hr style="border:none; border-top:1px dashed var(--gray-300); margin:12px 0;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--gray-500); margin-bottom:4px;">
+                                <span>Capital Usado:</span> <span id="debt-capital">$0</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--gray-500); margin-bottom:4px;">
+                                <span>Intereses Corrientes:</span> <span id="debt-interest">$0</span>
+                            </div>
+                            <div id="debt-mora-row" style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--danger); margin-bottom:4px;">
+                                <span>⚠️ Intereses Mora (<span id="debt-days-late">0</span> días):</span> <span id="debt-mora">$0</span>
+                            </div>
+                        </div>
+                        <!-- Billing Date Reminder -->
+                        <div id="debt-calendar" style="margin-top:12px; background:linear-gradient(135deg,#667eea22,#764ba222); border:1px solid #667eea44; border-radius:10px; padding:14px;">
+                            <div style="font-size:0.82rem; font-weight:700; color:var(--primary); margin-bottom:8px;"><i class="fa-solid fa-calendar-days"></i> Recordatorio de Fechas</div>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                                <div style="flex:1; background:white; border-radius:8px; padding:10px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                                    <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:4px;">✂️ Próximo Corte</div>
+                                    <div id="debt-fecha-corte" style="font-weight:700; font-size:0.95rem; color:var(--primary);">--</div>
+                                </div>
+                                <div style="flex:1; background:white; border-radius:8px; padding:10px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                                    <div style="font-size:0.75rem; color:var(--gray-500); margin-bottom:4px;">💳 Límite de Pago</div>
+                                    <div id="debt-fecha-limite" style="font-weight:700; font-size:0.95rem; color:var(--danger);">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pagar desde</label>
+                        <select class="form-control" id="pay-from">
+                            ${savings.map(a => `<option value="${a.id}">${a.tipo} - ${a.numero_cuenta} (${formatCurrency(a.saldo)})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Monto a pagar</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" class="form-control" id="pay-amount" placeholder="0.00" min="1" step="0.01" style="flex:1;">
+                            <button class="btn btn-outline" style="white-space:nowrap;" onclick="setPayAmount('total')">Pago Total</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock" style="margin-right:6px;color:var(--primary);"></i>Contraseña de Seguridad</label>
+                        <input type="password" id="pay-security-pw" class="form-control" placeholder="Tu contraseña de seguridad">
+                    </div>
+                    <div id="pay-error" style="display:none;color:var(--danger);font-size:0.88rem;margin-bottom:12px;padding:10px;background:#fff0f0;border-radius:8px;border-left:3px solid var(--danger);"></div>
+                    <button class="btn btn-primary btn-block btn-lg" id="btn-pay-credit" onclick="doCreditPayment()">
+                        <i class="fa-solid fa-money-bill-wave"></i> Pagar
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Cargar por defecto la primera
+        loadCreditDebt();
+    }
+
+    let currentDebtData = null;
+
+    async function loadCreditDebt() {
+        const select = document.getElementById('pay-card');
+        if(!select) return;
+        const id = select.value;
+        
+        document.getElementById('debt-info').style.display = 'none';
+        document.getElementById('debt-loading').style.display = 'block';
+        document.getElementById('btn-pay-credit').disabled = true;
+
+        try {
+            const data = await apiFetch(`/credito/${id}/deuda`);
+            currentDebtData = data;
+            
+            document.getElementById('debt-total').textContent = formatCurrency(data.pago_total);
+            document.getElementById('debt-min').textContent = formatCurrency(data.pago_minimo);
+            document.getElementById('debt-capital').textContent = formatCurrency(data.capital);
+            document.getElementById('debt-interest').textContent = formatCurrency(data.intereses_calculados);
+            document.getElementById('debt-mora').textContent = formatCurrency(data.mora_calculada);
+            document.getElementById('debt-days-late').textContent = data.dias_mora;
+
+            // Show/hide mora row
+            const moraRow = document.getElementById('debt-mora-row');
+            moraRow.style.display = (data.dias_mora > 0) ? 'flex' : 'none';
+
+            // Format date reminders
+            const fmtDate = iso => {
+                if (!iso) return '--';
+                const d = new Date(iso + 'T12:00:00');
+                return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+            };
+            document.getElementById('debt-fecha-corte').textContent = fmtDate(data.fecha_proximo_corte);
+            document.getElementById('debt-fecha-limite').textContent = fmtDate(data.fecha_limite_pago);
+
+            document.getElementById('debt-loading').style.display = 'none';
+            document.getElementById('debt-info').style.display = 'block';
+            document.getElementById('btn-pay-credit').disabled = false;
+        } catch(e) {
+            document.getElementById('debt-loading').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar deuda</span>`;
+        }
+    }
+
+    window.setPayAmount = function(type) {
+        if(!currentDebtData) return;
+        if(type === 'total') {
+            document.getElementById('pay-amount').value = currentDebtData.pago_total;
+        }
+    };
+
+    async function doCreditPayment() {
+        const amount = parseFloat(document.getElementById('pay-amount').value);
+        const pw = document.getElementById('pay-security-pw').value.trim();
+        const errBox = document.getElementById('pay-error');
+        const btn = document.getElementById('btn-pay-credit');
+
+        errBox.style.display = 'none';
+
+        if (!amount || amount <= 0) { errBox.textContent = 'Ingresa un monto válido'; errBox.style.display='block'; return; }
+        if (!currentDebtData) { errBox.textContent = 'Error cargando la deuda'; errBox.style.display='block'; return; }
+        if (!pw) { errBox.textContent = 'Ingresa tu contraseña de seguridad'; errBox.style.display='block'; return; }
+
+        // Distribute payment: Mora → Interest → Capital
+        let remaining = amount;
+        let pMora = 0, pInt = 0, pCap = 0;
+
+        if (remaining >= currentDebtData.mora_calculada) { pMora = currentDebtData.mora_calculada; remaining -= pMora; }
+        else { pMora = remaining; remaining = 0; }
+
+        if (remaining > 0) {
+            if (remaining >= currentDebtData.intereses_calculados) { pInt = currentDebtData.intereses_calculados; remaining -= pInt; }
+            else { pInt = remaining; remaining = 0; }
+        }
+
+        if (remaining > 0) { pCap = remaining; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+
+        try {
+            await apiFetch('/credito/pagar', {
+                method: 'POST',
+                body: JSON.stringify({
+                    tarjeta_id: document.getElementById('pay-card').value,
+                    cuenta_origen_id: document.getElementById('pay-from').value,
+                    monto: amount, capital: pCap, intereses: pInt, mora: pMora,
+                    password_seguridad: pw
+                })
+            });
+            showToast('¡Pago realizado exitosamente!', 'success');
+            navigate('inicio');
+        } catch(e) {
+            errBox.textContent = e.message || 'Error al procesar el pago';
+            errBox.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-money-bill-wave"></i> Pagar';
+        }
+    }
+
+    // --- NOTIFICACIONES ---
+    async function renderNotificaciones(c) {
+        const notifs = await apiFetch('/notificaciones');
+        if (notifs.length === 0) {
+            c.innerHTML = '<div class="empty-state"><i class="fa-solid fa-bell"></i><h2>Sin notificaciones</h2><p>No tienes notificaciones.</p></div>';
+            return;
+        }
+
+        c.innerHTML = `
+            <div class="fade-in-up">
+                <div class="flex-between">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Notificaciones</h2>
+                    <div>
+                        <button class="btn btn-ghost btn-sm" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i> Marcar todas</button>
+                        <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="deleteAllNotifs()"><i class="fa-solid fa-trash"></i> Borrar todas</button>
+                    </div>
+                </div>
+                <div class="notif-list">
+                    ${notifs.map(n => {
+                        let iconClass = 'system', iconFA = 'fa-bell';
+                        if (n.tipo.includes('transfer')) { iconClass = 'transfer'; iconFA = 'fa-arrow-right-arrow-left'; }
+                        else if (n.tipo.includes('consignacion')) { iconClass = 'deposit'; iconFA = 'fa-money-bill-trend-up'; }
+                        else if (n.tipo.includes('credito') || n.tipo.includes('pago')) { iconClass = 'credit'; iconFA = 'fa-credit-card'; }
+                        return `
+                            <div class="notif-item ${n.leida ? '' : 'unread'}" id="notif-${n.id}" onclick="markRead(${n.id}, this)">
+                                <div class="notif-icon ${iconClass}"><i class="fa-solid ${iconFA}"></i></div>
+                                <div class="notif-content">
+                                    <h4>${n.titulo}</h4>
+                                    <p>${n.mensaje}</p>
+                                </div>
+                                <span class="notif-time">${formatDate(n.fecha)}</span>
+                                <button class="btn-icon" style="color:var(--gray-400);background:none;border:none;cursor:pointer;margin-left:8px;" onclick="event.stopPropagation(); deleteNotif(${n.id})" title="Borrar">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    async function markRead(id, el) {
+        if (!el.classList.contains('unread')) return;
+        try { await apiFetch(`/notificaciones/${id}/leer`, { method: 'PUT' }); el.classList.remove('unread'); updateBadges(); } catch(e) {}
+    }
+    async function markAllRead() {
+        try { await apiFetch('/notificaciones/leer-todas', { method: 'PUT' }); showToast('Todas marcadas como leídas'); navigate('notificaciones'); updateBadges(); } catch(e) {}
+    }
+    async function deleteNotif(id) {
+        try { await apiFetch(`/notificaciones/${id}`, { method: 'DELETE' }); document.getElementById(`notif-${id}`).remove(); showToast('Notificación borrada'); updateBadges(); } catch(e) { showToast(e.message, 'error'); }
+    }
+    async function deleteAllNotifs() {
+        if (!confirm('¿Borrar todas las notificaciones?')) return;
+        try { await apiFetch('/notificaciones', { method: 'DELETE' }); showToast('Notificaciones borradas'); navigate('notificaciones'); updateBadges(); } catch(e) { showToast(e.message, 'error'); }
+    }
+
+    async function updateBadges() {
+        try {
+            const data = await apiFetch('/notificaciones/no-leidas');
+            const badge = document.getElementById('notif-badge');
+            const dot = document.getElementById('notif-dot');
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'inline';
+                dot.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+                dot.style.display = 'none';
+            }
+        } catch(e) {}
+    }
+
+    // === INIT ===
+    document.getElementById('user-name-display').textContent = `${user.nombre} ${user.apellido}`;
+    document.getElementById('user-avatar').textContent = (user.nombre || 'U')[0].toUpperCase();
+    navigate('inicio');
+    updateNotifBadge();
+    setInterval(updateNotifBadge, 30000);
+    </script>
+</body>
+</html>

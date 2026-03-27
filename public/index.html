@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BancoUM - Tu banco, tu futuro</title>
+    <meta name="description" content="BancoUM - Soluciones financieras para tu presente y tu futuro. Cuentas de ahorro, corriente y tarjetas de crédito.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="css/logoBanco.png" type="image/png">
+</head>
+<body>
+    <div class="landing-page">
+        <!-- Navbar -->
+        <nav class="landing-nav" id="landing-nav">
+            <div class="nav-brand">
+                <img src="css/logoBanco.png" alt="BancoUM Logo">
+                <span>BancoUM</span>
+            </div>
+            <div class="nav-links">
+                <a href="#inicio">Inicio</a>
+                <a href="#productos">Productos</a>
+                <a href="#nosotros">Nosotros</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost">Iniciar Sesión</a>
+                <a href="register.html" class="btn btn-primary">Abrir Cuenta</a>
+            </div>
+        </nav>
+
+        <!-- Hero -->
+        <section class="hero" id="inicio">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Banca segura y confiable
+                </div>
+                <h1>Soluciones para tu <span>presente</span> y tu <span>futuro</span></h1>
+                <p>En BancoUM te acompañamos con productos financieros diseñados para ti. Cuenta de ahorros, corriente y tarjetas de crédito con los mejores beneficios del mercado.</p>
+                <div class="hero-actions">
+                    <a href="register.html" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-rocket"></i>
+                        Abrir mi cuenta
+                    </a>
+                    <a href="#productos" class="btn btn-outline btn-lg">Ver productos</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-card">
+                    <div class="hero-card-logo">
+                        <span>BancoUM</span>
+                        <i class="fa-solid fa-wifi"></i>
+                    </div>
+                    <div class="hero-card-chip"></div>
+                    <div class="hero-card-number">•••• •••• •••• 4832</div>
+                    <div class="hero-card-footer">
+                        <div>
+                            <div class="label">Titular</div>
+                            <div class="value">USUARIO UM</div>
+                        </div>
+                        <div>
+                            <div class="label">Vence</div>
+                            <div class="value">12/29</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section class="section" id="productos" style="background: var(--gray-50);">
+            <div class="section-header">
+                <div class="section-badge">Nuestros productos</div>
+                <h2>Soluciones financieras a tu medida</h2>
+                <p>Elige el producto que mejor se adapte a tus necesidades o lleva ambos para obtener el máximo beneficio.</p>
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-icon savings">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <h3>Cuenta de Ahorros</h3>
+                    <p>Haz crecer tu dinero de forma segura. Sin costos ocultos y con acceso inmediato a tus fondos.</p>
+                    <ul class="product-features">
+                        <li><i class="fa-solid fa-check"></i> Transferencias ilimitadas</li>
+                        <li><i class="fa-solid fa-check"></i> Sin cuota de manejo</li>
+                        <li><i class="fa-solid fa-check"></i> Consulta de saldo en tiempo real</li>
+                        <li><i class="fa-solid fa-check"></i> Notificaciones de movimientos</li>
+                    </ul>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon credit">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <h3>Tarjeta de Crédito</h3>
+                    <p>Paga en todo el mundo con tu tarjeta BancoUM. Elige entre modalidades con o sin cuota de manejo.</p>
+                    <ul class="product-features">
+                        <li><i class="fa-solid fa-check"></i> Sin cuota: 2 meses sin interés</li>
+                        <li><i class="fa-solid fa-check"></i> Cupo hasta $5.000.000 COP</li>
+                        <li><i class="fa-solid fa-check"></i> Paga desde la app o sucursal</li>
+                        <li><i class="fa-solid fa-check"></i> Control total de tus gastos</li>
+                    </ul>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon both">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <h3>Ambos Productos</h3>
+                    <p>Obtén cuenta de ahorros y tarjeta de crédito juntas para una experiencia financiera completa.</p>
+                    <ul class="product-features">
+                        <li><i class="fa-solid fa-check"></i> Todos los beneficios combinados</li>
+                        <li><i class="fa-solid fa-check"></i> Paga tu crédito desde la app</li>
+                        <li><i class="fa-solid fa-check"></i> Un solo acceso para todo</li>
+                        <li><i class="fa-solid fa-check"></i> Gestión financiera integral</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="section" id="nosotros">
+            <div class="section-header">
+                <div class="section-badge">Sobre nosotros</div>
+                <h2>¿Por qué BancoUM?</h2>
+                <p>Somos una institución financiera comprometida con la innovación, la seguridad y el crecimiento de nuestros clientes.</p>
+            </div>
+            <div class="products-grid">
+                <div class="product-card" style="text-align:center;">
+                    <div class="product-icon teal" style="margin: 0 auto 16px;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3>100% Seguro</h3>
+                    <p>Tus datos y transacciones están protegidos con la tecnología más avanzada del mercado.</p>
+                </div>
+                <div class="product-card" style="text-align:center;">
+                    <div class="product-icon savings" style="margin: 0 auto 16px;">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3>Rápido y Fácil</h3>
+                    <p>Abre tu cuenta en minutos y accede a todos nuestros servicios desde cualquier dispositivo.</p>
+                </div>
+                <div class="product-card" style="text-align:center;">
+                    <div class="product-icon credit" style="margin: 0 auto 16px;">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3>Soporte 24/7</h3>
+                    <p>Nuestro equipo está disponible las 24 horas del día para ayudarte con lo que necesites.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span>BancoUM</span>
+                    <p>Tu banco, tu futuro. Soluciones financieras diseñadas para el crecimiento de nuestros clientes.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Productos</h4>
+                    <a href="#productos">Cuenta de Ahorros</a>
+                    <a href="#productos">Tarjeta de Crédito</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Empresa</h4>
+                    <a href="#nosotros">Nosotros</a>
+                    <a href="#">Términos y Condiciones</a>
+                    <a href="#">Política de Privacidad</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Contacto</h4>
+                    <a href="#"><i class="fa-solid fa-envelope"></i> soporte@bancoum.com</a>
+                    <a href="#"><i class="fa-solid fa-phone"></i> (604) 123-4567</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 BancoUM. Todos los derechos reservados.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Navbar scroll effect
+        const nav = document.getElementById('landing-nav');
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

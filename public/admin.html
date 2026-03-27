@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - BancoUM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="css/logoBanco.png" type="image/png">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="css/logoBanco.png" alt="BancoUM">
+                <h2>BancoUM</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul id="main-nav">
+                    <li class="nav-item active" data-view="dashboard">
+                        <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+                    </li>
+                    <li class="nav-label">Gestión</li>
+                    <li class="nav-item" data-view="solicitudes">
+                        <i class="fa-solid fa-inbox"></i><span>Solicitudes</span>
+                        <span class="badge-count" id="sol-badge" style="display:none;">0</span>
+                    </li>
+                    <li class="nav-item" data-view="usuarios">
+                        <i class="fa-solid fa-users"></i><span>Usuarios</span>
+                    </li>
+                    <li class="nav-label">Operaciones</li>
+                    <li class="nav-item" data-view="consignaciones">
+                        <i class="fa-solid fa-money-bill-trend-up"></i><span>Consignaciones</span>
+                    </li>
+                    <li class="nav-item" data-view="pagos-credito">
+                        <i class="fa-solid fa-credit-card"></i><span>Pagos Crédito</span>
+                    </li>
+                    <li class="nav-label">Sistema</li>
+                    <li class="nav-label">Datos Core</li>
+                    <li class="nav-item" data-view="clientes">
+                        <i class="fa-solid fa-address-book"></i><span>Clientes</span>
+                    </li>
+                    <li class="nav-item" data-view="cuentas">
+                        <i class="fa-solid fa-building-columns"></i><span>Cuentas Core</span>
+                    </li>
+                    <li class="nav-item" data-view="movimientos">
+                        <i class="fa-solid fa-money-bill-transfer"></i><span>Movimientos</span>
+                    </li>
+                    <li class="nav-item" data-view="empleados">
+                        <i class="fa-solid fa-user-tie"></i><span>Empleados</span>
+                    </li>
+                    <li class="nav-item" data-view="sedes">
+                        <i class="fa-solid fa-building"></i><span>Sedes</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">SA</div>
+                    <div class="details">
+                        <span class="name">Super Admin</span>
+                        <span class="role">Administrador</span>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+                    <span class="topbar-title" id="topbar-title">Dashboard</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" onclick="navigate('notificaciones')">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notif-dot" id="notif-dot" style="display:none;"></span>
+                    </button>
+                </div>
+            </header>
+            <div id="view-container" class="view-container"></div>
+        </main>
+    </div>
+
+    <!-- Approval Modal -->
+    <div class="modal-overlay" id="approval-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="approval-modal-title">Aprobar Solicitud</h3>
+                <button class="close-modal" onclick="closeModal('approval-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="approval-modal-body"></div>
+            <div class="modal-footer" id="approval-modal-footer"></div>
+        </div>
+    </div>
+
+    <!-- User 360 Modal -->
+    <div class="modal-overlay" id="user-360-modal">
+        <div class="modal" style="max-width:900px; width:95%; max-height:90vh; overflow-y:auto;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-astronaut"></i> Perfil 360° - Vista Avanzada</h3>
+                <button class="close-modal" onclick="closeModal('user-360-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="user-360-body" style="padding:0;">
+                <!-- Content will be dynamically loaded via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Dates Modal -->
+    <div class="modal-overlay" id="edit-dates-modal" style="z-index: 100000;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-calendar-days"></i> Editar Fechas de Pago</h3>
+                <button class="close-modal" onclick="closeModal('edit-dates-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--gray-500);margin-bottom:16px;">Ajusta el ciclo de facturación para esta tarjeta de crédito.</p>
+                <div class="form-group">
+                    <label>Día de Corte (1-31)</label>
+                    <input type="number" id="edit-date-corte" class="form-control" min="1" max="31">
+                </div>
+                <div class="form-group">
+                    <label>Día Límite de Pago (1-31)</label>
+                    <input type="number" id="edit-date-pago" class="form-control" min="1" max="31">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('edit-dates-modal')">Cancelar</button>
+                <button class="btn btn-primary" id="save-dates-btn">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+    const API_URL = 'http://localhost:3000/api';
+    const token = localStorage.getItem('bancoum_token');
+    const user = JSON.parse(localStorage.getItem('bancoum_user') || '{}');
+    if (!token || user.rol !== 'superadmin') { window.location.href = 'login.html'; }
+
+    function showToast(msg, type='success') {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        const ic = type==='success'?'fa-circle-check':type==='error'?'fa-circle-exclamation':'fa-circle-info';
+        t.innerHTML = `<i class="fa-solid ${ic}"></i><span>${msg}</span>`;
+        c.appendChild(t);
+        setTimeout(()=>t.classList.add('show'),10);
+        setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},4000);
+    }
+
+    function formatCurrency(a){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0}).format(a);}
+    function formatDate(d){if(!d)return'-';return new Intl.DateTimeFormat('es-CO',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(d));}
+
+    async function apiFetch(endpoint, options={}) {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            ...options,
+            headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`,...options.headers}
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error||'Error');
+        return data;
+    }
+
+    function logout(){localStorage.clear();window.location.href='login.html';}
+    function closeModal(id){document.getElementById(id).classList.remove('active');}
+
+    // NAV
+    const titles = {
+        dashboard:'Dashboard',solicitudes:'Solicitudes',usuarios:'Usuarios Auth',
+        consignaciones:'Consignaciones','pagos-credito':'Pagos de Crédito',notificaciones:'Notificaciones',
+        clientes:'Gestión de Clientes', cuentas:'Cuentas Core', movimientos:'Movimientos Core', empleados:'Gestión de Empleados', sedes:'Gestión de Sedes'
+    };
+    function navigate(view){
+        document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+        const a=document.querySelector(`.nav-item[data-view="${view}"]`);
+        if(a)a.classList.add('active');
+        document.getElementById('topbar-title').textContent=titles[view]||view;
+        if(window.innerWidth<=992){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('active');}
+        renderView(view);
+    }
+    document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>navigate(item.dataset.view));});
+    document.getElementById('menu-toggle').addEventListener('click',()=>{
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebar-overlay').classList.toggle('active');
+    });
+    document.getElementById('sidebar-overlay').addEventListener('click',()=>{
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('active');
+    });
+
+    async function renderView(view){
+        const c=document.getElementById('view-container');
+        c.innerHTML='<div class="loader-container"><div class="spinner"></div></div>';
+        try{
+            switch(view){
+                case'dashboard':await renderDashboard(c);break;
+                case'solicitudes':await renderSolicitudes(c);break;
+                case'usuarios':await renderUsuarios(c);break;
+                case'consignaciones':await renderConsignaciones(c);break;
+                case'pagos-credito':await renderPagosCredito(c);break;
+                case'notificaciones':await renderNotificaciones(c);break;
+                case'clientes':await renderClientes(c);break;
+                case'cuentas':await renderCuentasCore(c);break;
+                case'movimientos':await renderMovimientosCore(c);break;
+                case'empleados':await renderEmpleados(c);break;
+                case'sedes':await renderSedes(c);break;
+                default:c.innerHTML='<div class="empty-state"><i class="fa-solid fa-hammer"></i><h2>En construcción</h2></div>';
+            }
+        }catch(e){c.innerHTML=`<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>${e.message}</p></div>`;}
+    }
+
+    let mainChartInstance = null;
+    let pieChartInstance = null;
+
+    // DASHBOARD
+    async function renderDashboard(c){
+        const stats = await apiFetch('/admin/dashboard-maestro');
+        
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between" style="margin-bottom:28px;">
+                    <div>
+                        <h2 style="font-size:1.8rem;font-weight:800;color:var(--primary);margin-bottom:4px;">Panel Financiero BancoUM</h2>
+                        <p style="color:var(--gray-500);">Resumen gerencial y volumen de negocio al ${formatDate(new Date())}</p>
+                    </div>
+                </div>
+                
+                <h3 style="font-size:1.2rem;margin-bottom:16px;color:var(--gray-700);">Indicadores Globales KPI</h2>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="card stat-card" style="background:var(--primary);color:var(--white);"><div class="stat-icon" style="background:rgba(255,255,255,0.2);color:white;"><i class="fa-solid fa-coins"></i></div>
+                        <div class="stat-info"><h3 style="color:rgba(255,255,255,0.8);">Total Activos M</h3><div class="value" style="color:white;font-size:1.6rem;">${formatCurrency(stats.kpis.dinero_total)}</div></div></div>
+                    <div class="card stat-card"><div class="stat-icon teal"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-info"><h3>Total Clientes</h3><div class="value">${stats.kpis.clientes}</div></div></div>
+                    <div class="card stat-card"><div class="stat-icon blue"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="stat-info"><h3>Cuentas Activas</h3><div class="value">${stats.kpis.cuentas_activas}</div></div></div>
+                    <div class="card stat-card"><div class="stat-icon orange"><i class="fa-solid fa-credit-card"></i></div>
+                        <div class="stat-info"><h3>Tarjetas</h3><div class="value">${stats.kpis.tarjetas_activas}</div></div></div>
+                    <div class="card stat-card"><div class="stat-icon green"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                        <div class="stat-info"><h3>Transacciones</h3><div class="value">${stats.kpis.transacciones}</div></div></div>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-top:24px;">
+                    <!-- Activity Chart -->
+                    <div class="card">
+                        <h3 style="margin-bottom:16px;">Volumen de Transacciones (Últimos 30 días)</h3>
+                        <div style="position:relative; width:100%; height:320px;">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Pie Chart & Flows -->
+                    <div style="display:flex;flex-direction:column;gap:24px;">
+                        <div class="card">
+                            <h3 style="margin-bottom:16px;">Distribución de Saldos</h3>
+                            ${stats.saldos_tipo.length === 0 ? '<p style="color:var(--gray-400);text-align:center;">Sin datos</p>' : '<div style="position:relative; width:100%; height:200px;"><canvas id="distChart"></canvas></div>'}
+                        </div>
+                        <div class="card">
+                            <h3 style="margin-bottom:16px;">Desglose Flujos</h3>
+                            <ul style="list-style:none;padding:0;margin:0;">
+                                ${stats.flujos.map(f => `
+                                    <li style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-100);">
+                                        <div><strong>${f.tipo}</strong> <br><small style="color:var(--gray-400);">${f.cantidad} operaciones</small></div>
+                                        <div style="font-weight:700;">${formatCurrency(f.total)}</div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        // Render Charts using Chart.js
+        setTimeout(() => {
+            if(mainChartInstance) mainChartInstance.destroy();
+            if(pieChartInstance) pieChartInstance.destroy();
+
+            const ActCtx = document.getElementById('activityChart');
+            if(ActCtx && stats.actividad_dias.length > 0) {
+                mainChartInstance = new Chart(ActCtx, {
+                    type: 'line',
+                    data: {
+                        labels: stats.actividad_dias.map(d => d.dia),
+                        datasets: [{
+                            label: 'Operaciones diarias',
+                            data: stats.actividad_dias.map(d => d.cantidad),
+                            borderColor: '#1B8E8A',
+                            backgroundColor: 'rgba(27,142,138,0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            const DistCtx = document.getElementById('distChart');
+            if(DistCtx && stats.saldos_tipo.length > 0) {
+                pieChartInstance = new Chart(DistCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: stats.saldos_tipo.map(d => d.nombre),
+                        datasets: [{
+                            data: stats.saldos_tipo.map(d => d.total),
+                            backgroundColor: ['#1B8E8A', '#0E3635', '#FFAA00', '#F44336']
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        }, 100);
+    }
+
+    // SOLICITUDES
+    async function renderSolicitudes(c){
+        const sols=await apiFetch('/solicitudes');
+        const pending=sols.filter(s=>s.estado==='pendiente');
+        const resolved=sols.filter(s=>s.estado!=='pendiente');
+
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Solicitudes de Productos</h2>
+                ${pending.length>0?`
+                    <h3 style="color:var(--warning);margin-bottom:12px;"><i class="fa-solid fa-clock"></i> Pendientes (${pending.length})</h3>
+                    <div class="card"><div class="table-container"><table>
+                        <thead><tr><th>Fecha</th><th>Usuario</th><th>Cédula</th><th>Email</th><th>Producto</th><th>Acciones</th></tr></thead>
+                        <tbody>${pending.map(s=>`
+                            <tr>
+                                <td>${formatDate(s.fecha_solicitud)}</td>
+                                <td><strong>${s.nombre} ${s.apellido}</strong></td>
+                                <td>${s.cedula}</td>
+                                <td>${s.email}</td>
+                                <td><span class="badge badge-info">${s.tipo_producto.replace(/_/g,' ')}</span></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="action-btn approve" title="Aprobar" onclick="showApproval(${s.id},'${s.nombre}','${s.apellido}','${s.tipo_producto}')"><i class="fa-solid fa-check"></i></button>
+                                        <button class="action-btn reject" title="Rechazar" onclick="rejectSolicitud(${s.id})"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                </td>
+                            </tr>`).join('')}</tbody>
+                    </table></div></div>`
+                :'<div class="card" style="text-align:center;padding:40px;color:var(--gray-400);"><i class="fa-solid fa-check-circle" style="font-size:2rem;margin-bottom:12px;display:block;color:var(--success);"></i>No hay solicitudes pendientes</div>'}
+
+                ${resolved.length>0?`
+                    <h3 style="color:var(--gray-500);margin:24px 0 12px;">Historial de Solicitudes</h3>
+                    <div class="card"><div class="table-container"><table>
+                        <thead><tr><th>Fecha</th><th>Usuario</th><th>Producto</th><th>Estado</th><th>Resolución</th></tr></thead>
+                        <tbody>${resolved.map(s=>`
+                            <tr>
+                                <td>${formatDate(s.fecha_solicitud)}</td>
+                                <td>${s.nombre} ${s.apellido}</td>
+                                <td>${s.tipo_producto.replace(/_/g,' ')}</td>
+                                <td><span class="badge ${s.estado.includes('aprobado')?'badge-success':'badge-danger'}">${s.estado.replace(/_/g,' ')}</span></td>
+                                <td>${formatDate(s.fecha_resolucion)}</td>
+                            </tr>`).join('')}</tbody>
+                    </table></div></div>`:''}
+            </div>`;
+    }
+
+    function showApproval(id,nombre,apellido,tipo){
+        const modal=document.getElementById('approval-modal');
+        document.getElementById('approval-modal-title').textContent=`Aprobar: ${nombre} ${apellido}`;
+        let options='';
+        const incluyeTarjeta = tipo.includes('tarjeta');
+        
+        if(tipo==='cuenta_y_tarjeta' || tipo==='ahorros_y_tarjeta' || tipo==='corriente_y_tarjeta'){
+            options=`
+                <label style="font-size:0.85rem;font-weight:600;color:var(--gray-700);margin-bottom:12px;display:block;">Selecciona qué aprobar:</label>
+                <div class="product-selection" style="margin-bottom:12px;">
+                    <div class="product-option selected" data-dec="aprobado_ambos" onclick="selectDec(this)"><i class="fa-solid fa-layer-group"></i><span>Ambos</span></div>
+                    <div class="product-option" data-dec="aprobado_cuenta" onclick="selectDec(this)"><i class="fa-solid fa-piggy-bank"></i><span>Solo Cuenta</span></div>
+                    <div class="product-option" data-dec="aprobado_tarjeta" onclick="selectDec(this)"><i class="fa-solid fa-credit-card"></i><span>Solo Tarjeta</span></div>
+                </div>`;
+        } else if(tipo==='tarjeta_credito'){
+            options='<p>Se aprobará la <strong>Tarjeta de Crédito</strong> para este usuario.</p><input type="hidden" id="dec-hidden" value="aprobado_tarjeta">';
+        } else {
+            options='<p>Se aprobará la <strong>Cuenta de Ahorros/Corriente</strong> para este usuario.</p><input type="hidden" id="dec-hidden" value="aprobado_cuenta">';
+        }
+        
+        if(incluyeTarjeta || tipo === 'tarjeta_credito') {
+            options += `
+                <div id="cupo-container" class="form-group" style="${(!incluyeTarjeta || tipo === 'tarjeta_credito') ? 'display:block;':'display:block;'}margin-top:16px;">
+                    <label>Cupo Tarjeta de Crédito (COP)</label>
+                    <input type="number" id="cupo-input" class="form-control" value="5000000" min="500000" step="100000">
+                </div>`;
+        }
+
+        document.getElementById('approval-modal-body').innerHTML=options;
+        document.getElementById('approval-modal-footer').innerHTML=`
+            <button class="btn btn-ghost" onclick="closeModal('approval-modal')">Cancelar</button>
+            <button class="btn btn-primary" onclick="confirmApproval(${id},'${tipo}')"><i class="fa-solid fa-check"></i> Aprobar</button>`;
+        modal.classList.add('active');
+    }
+
+    let selectedDecision='aprobado_ambos';
+    function selectDec(el){
+        document.querySelectorAll('#approval-modal .product-option').forEach(o=>o.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedDecision=el.dataset.dec;
+        const cupoContainer = document.getElementById('cupo-container');
+        if(cupoContainer) {
+            cupoContainer.style.display = (selectedDecision === 'aprobado_ambos' || selectedDecision === 'aprobado_tarjeta') ? 'block' : 'none';
+        }
+    }
+
+    async function confirmApproval(id,tipo){
+        let decision = document.getElementById('dec-hidden') ? document.getElementById('dec-hidden').value : selectedDecision;
+        const incluyeTarjeta = decision === 'aprobado_ambos' || decision === 'aprobado_tarjeta';
+        const cupo_tarjeta = (incluyeTarjeta && document.getElementById('cupo-input')) 
+                             ? parseFloat(document.getElementById('cupo-input').value) : null;
+
+        try{
+            await apiFetch(`/solicitudes/${id}/aprobar`,{method:'PUT',body:JSON.stringify({decision, cupo_tarjeta})});
+            showToast('Solicitud aprobada y correo enviado');
+            closeModal('approval-modal');
+            navigate('solicitudes');
+        }catch(e){showToast(e.message,'error');}
+    }
+
+    async function rejectSolicitud(id){
+        if(!confirm('¿Rechazar esta solicitud?'))return;
+        try{
+            await apiFetch(`/solicitudes/${id}/rechazar`,{method:'PUT',body:JSON.stringify({observaciones:'Rechazada por el administrador'})});
+            showToast('Solicitud rechazada');
+            navigate('solicitudes');
+        }catch(e){showToast(e.message,'error');}
+    }
+
+    // USUARIOS
+    async function renderUsuarios(c){
+        const users=await apiFetch('/admin/usuarios');
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Usuarios del Sistema (${users.length})</h2>
+                <div class="card"><div class="table-container"><table>
+                    <thead><tr><th>Cédula</th><th>Nombre</th><th>Email</th><th>Estado</th><th>Productos</th><th>Registro</th></tr></thead>
+                    <tbody>${users.map(u=>`
+                        <tr>
+                            <td><strong>${u.cedula}</strong></td>
+                            <td>${u.nombre} ${u.apellido}</td>
+                            <td>${u.email}</td>
+                            <td><span class="badge ${u.estado==='activo'?'badge-success':u.estado==='pendiente'?'badge-warning':'badge-danger'}">${u.estado}</span></td>
+                            <td>${u.cuentas.map(c=>`<span class="badge badge-info" style="margin:2px;">${c.tipo} ${c.activa?'✓':'✗'}</span>`).join('')}</td>
+                            <td>
+                                <button class="action-btn" title="Ver Perfil 360°" style="background:var(--primary);color:var(--white);" onclick="showUser360('${u.cedula}')"><i class="fa-solid fa-eye"></i></button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                </table></div></div>
+            </div>`;
+    }
+
+    async function showUser360(id) {
+        document.getElementById('user-360-body').innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
+        document.getElementById('user-360-modal').classList.add('active');
+
+        try {
+            const data = await apiFetch(`/admin/usuario/${id}/vista-avanzada`);
+            const u = data.usuario;
+            
+            let html = `
+                <div style="padding:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
+                        <div>
+                            <h2 style="font-size:1.8rem; font-weight:800; color:var(--primary);">${u.nombre} ${u.apellido}</h2>
+                            <p style="color:var(--gray-500);"><i class="fa-solid fa-id-card"></i> CI: ${u.cedula} &nbsp;|&nbsp; <i class="fa-solid fa-envelope"></i> ${u.email}</p>
+                            <p style="color:var(--gray-500);"><i class="fa-solid fa-phone"></i> ${u.telefono || 'N/A'} &nbsp;|&nbsp; <i class="fa-solid fa-location-dot"></i> ${u.direccion || 'N/A'}</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="badge ${u.estado==='activo'?'badge-success':'badge-danger'}" style="font-size:1rem; padding:8px 12px;">Estado: ${u.estado.toUpperCase()}</span>
+                            <div style="margin-top:8px; font-size:0.85rem; color:var(--gray-400);">Registrado: ${formatDate(u.fecha_registro)}</div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px;">
+                        <div class="card" style="background:#f8fafc; border:1px solid #e2e8f0; box-shadow:none;">
+                            <h3 style="font-size:1rem; margin-bottom:12px; color:var(--gray-700);"><i class="fa-solid fa-piggy-bank"></i> Cuentas (Corriente/Ahorros)</h3>
+                            ${data.cuentas.length > 0 ? data.cuentas.map(c => `
+                                <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e2e8f0;">
+                                    <div>
+                                        <strong>${c.tipo}</strong><br>
+                                        <small style="color:var(--gray-500);">N° ${c.numero_cuenta} &bull; ${c.activa?'Activa':'Inactiva'}</small>
+                                    </div>
+                                    <div style="font-weight:700; color:var(--primary); font-size:1.1rem;">${formatCurrency(c.saldo)}</div>
+                                </div>
+                            `).join('') : '<p style="color:var(--gray-400);">No posee cuentas de ahorro o corriente.</p>'}
+                        </div>
+
+                        <div class="card" style="background:#f8fafc; border:1px solid #e2e8f0; box-shadow:none;">
+                            <h3 style="font-size:1rem; margin-bottom:12px; color:var(--gray-700);"><i class="fa-solid fa-credit-card"></i> Tarjetas de Crédito</h3>
+                            ${data.tarjetas.length > 0 ? data.tarjetas.map(c => `
+                                <div style="padding:12px 0; border-bottom:1px solid #e2e8f0;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                        <strong>Tarjeta N° ${c.numero_cuenta}</strong>
+                                        <span class="badge ${c.activa?'badge-success':'badge-warning'}">${c.activa?'Activa':'Inactiva'}</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                        <span style="color:var(--gray-500);">Deuda Total:</span>
+                                        <strong style="color:var(--danger);">${formatCurrency(Number(c.deuda_capital) + Number(c.intereses_acumulados) + Number(c.mora_acumulada))}</strong>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; color:var(--gray-500); margin-top:8px;">
+                                        <div>
+                                            <span style="display:block;">Cupo Disponible: ${formatCurrency(c.cupo_disponible)}</span>
+                                            <span style="display:block;">Corte: Día ${c.fecha_corte || 30} | Pago: Día ${c.dia_pago || 15}</span>
+                                            <div style="margin-top:4px; font-size:0.8rem;">
+                                                <span style="display:block; color:var(--gray-600);">Estado: <strong>${c.estado_credito}</strong> | Cuotas/Pagos: ${c.pagos_realizados}</span>
+                                                <span style="display:block; color:var(--gray-600);">Intereses generados: ${formatCurrency(c.intereses_acumulados)}</span>
+                                                <span style="display:block; color:var(--gray-600);">Mora acumulada: ${formatCurrency(c.mora_acumulada)}</span>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-outline btn-sm" style="padding:4px 8px; font-size:0.75rem;" onclick="showEditDatesModal(${c.id}, ${c.fecha_corte || 30}, ${c.dia_pago || 15}, '${u.cedula}')">
+                                            <i class="fa-solid fa-pen"></i> Fechas
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('') : '<p style="color:var(--gray-400);">No posee tarjetas de crédito.</p>'}
+                        </div>
+                    </div>
+
+                    <h3 style="font-size:1.1rem; margin-bottom:16px; color:var(--gray-700);"><i class="fa-solid fa-list"></i> Últimos Movimientos</h3>
+                    <div style="max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;">
+                        <table style="width:100%; text-align:left; border-collapse:collapse;">
+                            <thead style="background:#f1f5f9; position:sticky; top:0;">
+                                <tr>
+                                    <th style="padding:12px; font-size:0.85rem; color:var(--gray-600);">Fecha</th>
+                                    <th style="padding:12px; font-size:0.85rem; color:var(--gray-600);">Tipo</th>
+                                    <th style="padding:12px; font-size:0.85rem; color:var(--gray-600);">Detalles</th>
+                                    <th style="padding:12px; font-size:0.85rem; color:var(--gray-600); text-align:right;">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.historial.length > 0 ? data.historial.map(m => `
+                                    <tr style="border-bottom:1px solid #e2e8f0;">
+                                        <td style="padding:12px; font-size:0.9rem;">${formatDate(m.fecha)}</td>
+                                        <td style="padding:12px; font-size:0.9rem;"><span class="badge badge-info">${m.tipo}</span></td>
+                                        <td style="padding:12px; font-size:0.85rem; color:var(--gray-500);">
+                                            De: ${m.numero_origen || 'Caja'} <i class="fa-solid fa-arrow-right"></i> A: ${m.numero_destino || 'Exterior'}
+                                        </td>
+                                        <td style="padding:12px; font-size:0.95rem; font-weight:600; text-align:right; color:${m.tipo==='CONSIGNACION'?'var(--success)':'var(--black)'};">${formatCurrency(m.valor)}</td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="4" style="padding:20px; text-align:center; color:var(--gray-400);">No se encontraron movimientos.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            document.getElementById('user-360-body').innerHTML = html;
+        } catch(e) {
+            document.getElementById('user-360-body').innerHTML = `<div style="padding:40px; text-align:center; color:var(--danger);"><i class="fa-solid fa-circle-exclamation" style="font-size:2rem; margin-bottom:12px;"></i><p>${e.message}</p></div>`;
+        }
+    }
+
+    // Modal Edit Dates JS Logic
+    let currentEditDateCardId = null;
+    let currentEditDateUserId = null;
+
+    window.showEditDatesModal = function(cardId, cCorte, cPago, userId) {
+        currentEditDateCardId = cardId;
+        currentEditDateUserId = userId;
+        document.getElementById('edit-date-corte').value = cCorte;
+        document.getElementById('edit-date-pago').value = cPago;
+        document.getElementById('edit-dates-modal').classList.add('active');
+    };
+
+    document.getElementById('save-dates-btn').addEventListener('click', async () => {
+        const nCorte = parseInt(document.getElementById('edit-date-corte').value);
+        const nPago = parseInt(document.getElementById('edit-date-pago').value);
+        
+        if(!nCorte || nCorte < 1 || nCorte > 31 || !nPago || nPago < 1 || nPago > 31) {
+            showToast('Ingresa días válidos entre 1 y 31', 'error');
+            return;
+        }
+
+        try {
+            const res = await apiFetch('/credito/' + currentEditDateCardId + '/fecha-pago', {
+                method: 'PUT',
+                body: JSON.stringify({ nuevo_corte: nCorte, nuevo_pago: nPago })
+            });
+            showToast(res.message);
+            closeModal('edit-dates-modal');
+            // Reload 360 modal to reflect changes
+            showUser360(currentEditDateUserId);
+        } catch(e) {
+            showToast(e.message, 'error');
+        }
+    });
+
+    // CONSIGNACIONES
+    async function renderConsignaciones(c){
+        c.innerHTML=`
+            <div class="fade-in-up" style="max-width:600px;">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Nueva Consignación</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Buscar Cuenta</label>
+                        <input type="text" class="form-control" id="consig-search" placeholder="Buscar por N° cuenta, cédula o nombre" oninput="searchAccount()">
+                        <div id="search-results" style="margin-top:8px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Número de Cuenta</label>
+                        <input type="text" class="form-control" id="consig-account" placeholder="Número de cuenta" readonly>
+                    </div>
+                    <div id="consig-info" style="display:none;background:var(--gray-50);padding:12px;border-radius:8px;margin-bottom:16px;">
+                        <p id="consig-titular" style="font-weight:600;"></p>
+                        <p id="consig-saldo" style="color:var(--gray-500);font-size:0.9rem;"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Monto a Consignar</label>
+                        <input type="number" class="form-control" id="consig-amount" placeholder="0.00" min="1" step="0.01">
+                    </div>
+                    <button class="btn btn-primary btn-block btn-lg" onclick="doConsignacion()">
+                        <i class="fa-solid fa-money-bill-trend-up"></i> Consignar
+                    </button>
+                </div>
+            </div>`;
+    }
+
+    let searchTimeout;
+    async function searchAccount(){
+        clearTimeout(searchTimeout);
+        const q=document.getElementById('consig-search').value.trim();
+        if(q.length<2){document.getElementById('search-results').innerHTML='';return;}
+        searchTimeout=setTimeout(async()=>{
+            try{
+                const results=await apiFetch(`/admin/buscar-cuenta?q=${encodeURIComponent(q)}`);
+                const div=document.getElementById('search-results');
+                if(results.length===0){div.innerHTML='<p style="color:var(--gray-400);font-size:0.85rem;">Sin resultados</p>';return;}
+                div.innerHTML=results.filter(r=>r.tipo!=='TARJETA_CREDITO').map(r=>`
+                    <div style="padding:10px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;" 
+                         onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--gray-200)'"
+                         onclick="selectAccount('${r.numero_cuenta}','${r.titular}','${r.saldo}')">
+                        <strong>${r.numero_cuenta}</strong> - ${r.titular} (${r.cedula})<br>
+                        <small style="color:var(--gray-400);">${r.tipo} | Saldo: ${formatCurrency(r.saldo)}</small>
+                    </div>`).join('');
+            }catch(e){}
+        },300);
+    }
+
+    function selectAccount(num,titular,saldo){
+        document.getElementById('consig-account').value=num;
+        document.getElementById('consig-titular').textContent=titular;
+        document.getElementById('consig-saldo').textContent='Saldo actual: '+formatCurrency(saldo);
+        document.getElementById('consig-info').style.display='block';
+        document.getElementById('search-results').innerHTML='';
+    }
+
+    async function doConsignacion(){
+        const num=document.getElementById('consig-account').value;
+        const monto=parseFloat(document.getElementById('consig-amount').value);
+        if(!num||!monto||monto<=0){showToast('Completa todos los campos','error');return;}
+        try{
+            await apiFetch('/consignaciones',{method:'POST',body:JSON.stringify({numero_cuenta:num,monto})});
+            showToast('¡Consignación realizada!');
+            document.getElementById('consig-account').value='';
+            document.getElementById('consig-amount').value='';
+            document.getElementById('consig-info').style.display='none';
+            document.getElementById('consig-search').value='';
+        }catch(e){showToast(e.message,'error');}
+    }
+
+    // PAGOS CREDITO
+    async function renderPagosCredito(c){
+        c.innerHTML=`
+            <div class="fade-in-up" style="max-width:600px;">
+                <h2 style="font-size:1.4rem;font-weight:700;margin-bottom:24px;">Registrar Pago de Crédito (Sucursal)</h2>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Buscar Tarjeta</label>
+                        <input type="text" class="form-control" id="pago-search" placeholder="Buscar por N° tarjeta, cédula o nombre" oninput="searchCard()">
+                        <div id="card-search-results" style="margin-top:8px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Número de Tarjeta</label>
+                        <input type="text" class="form-control" id="pago-card" placeholder="Número de tarjeta" readonly>
+                    </div>
+                    <div id="pago-info" style="display:none;background:var(--gray-50);padding:12px;border-radius:8px;margin-bottom:16px;">
+                        <p id="pago-titular" style="font-weight:600;"></p>
+                        <p id="pago-deuda" style="color:var(--danger);font-size:0.9rem;"></p>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monto Total</label>
+                            <input type="number" class="form-control" id="pago-total" placeholder="0.00" min="1" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Capital</label>
+                            <input type="number" class="form-control" id="pago-capital" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Intereses</label>
+                            <input type="number" class="form-control" id="pago-intereses" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Mora</label>
+                            <input type="number" class="form-control" id="pago-mora" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block btn-lg" onclick="doPagoCredito()">
+                        <i class="fa-solid fa-receipt"></i> Registrar Pago
+                    </button>
+                </div>
+            </div>`;
+    }
+
+    let cardSearchTimeout;
+    async function searchCard(){
+        clearTimeout(cardSearchTimeout);
+        const q=document.getElementById('pago-search').value.trim();
+        if(q.length<2){document.getElementById('card-search-results').innerHTML='';return;}
+        cardSearchTimeout=setTimeout(async()=>{
+            try{
+                const results=await apiFetch(`/admin/buscar-cuenta?q=${encodeURIComponent(q)}`);
+                const div=document.getElementById('card-search-results');
+                const cards=results.filter(r=>r.tipo==='TARJETA_CREDITO');
+                if(cards.length===0){div.innerHTML='<p style="color:var(--gray-400);font-size:0.85rem;">Sin tarjetas encontradas</p>';return;}
+                div.innerHTML=cards.map(r=>`
+                    <div style="padding:10px;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;"
+                         onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--gray-200)'"
+                         onclick="selectCard('${r.numero_cuenta}','${r.titular}','${r.cupo_disponible}')">
+                        <strong>${r.numero_cuenta}</strong> - ${r.titular} (${r.cedula})<br>
+                        <small style="color:var(--gray-400);">Disponible: ${formatCurrency(r.cupo_disponible)}</small>
+                    </div>`).join('');
+            }catch(e){}
+        },300);
+    }
+
+    function selectCard(num,titular,disp){
+        document.getElementById('pago-card').value=num;
+        document.getElementById('pago-titular').textContent=titular;
+        document.getElementById('pago-deuda').textContent='Cupo disponible: '+formatCurrency(disp);
+        document.getElementById('pago-info').style.display='block';
+        document.getElementById('card-search-results').innerHTML='';
+    }
+
+    async function doPagoCredito(){
+        const num=document.getElementById('pago-card').value;
+        const monto=parseFloat(document.getElementById('pago-total').value);
+        if(!num||!monto||monto<=0){showToast('Completa los campos requeridos','error');return;}
+        try{
+            await apiFetch('/credito/pago-admin',{method:'POST',body:JSON.stringify({
+                numero_cuenta_tarjeta:num,monto,
+                capital:parseFloat(document.getElementById('pago-capital').value)||monto,
+                intereses:parseFloat(document.getElementById('pago-intereses').value)||0,
+                mora:parseFloat(document.getElementById('pago-mora').value)||0
+            })});
+            showToast('¡Pago registrado exitosamente!');
+            document.getElementById('pago-card').value='';
+            document.getElementById('pago-total').value='';
+            document.getElementById('pago-capital').value='';
+            document.getElementById('pago-intereses').value='';
+            document.getElementById('pago-mora').value='';
+            document.getElementById('pago-info').style.display='none';
+            document.getElementById('pago-search').value='';
+        }catch(e){showToast(e.message,'error');}
+    }
+
+    // --- CRUD CORE ---
+    async function renderClientes(c){
+        const datos=await apiFetch('/admin/clientes-maestro');
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between" style="margin-bottom:24px;">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Visión Detallada de Clientes (${datos.length})</h2>
+                </div>
+                <div class="card"><div class="table-container"><table>
+                    <thead><tr><th>Cliente/Doc</th><th>Contacto</th><th>Tipos de Cuenta</th><th>Total Activos</th><th>T. Crédito</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody>${datos.map(d=>`
+                        <tr>
+                            <td><strong>${d.nombre} ${d.apellido}</strong><br><small style="color:var(--gray-500);">${d.numero_documento}</small></td>
+                            <td>${d.email}</td>
+                            <td>${d.tipos_cuenta ? d.tipos_cuenta.split(',').map(x=>`<span class="badge badge-info" style="margin-right:4px;">${x.trim()}</span>`).join(''):'<span style="color:var(--gray-400)">Sin productos</span>'}</td>
+                            <td style="font-weight:700;color:var(--primary);">${formatCurrency(d.saldo_total)}</td>
+                            <td>${d.tiene_tarjeta?'<i class="fa-solid fa-check" style="color:var(--success);"></i>':'<i class="fa-solid fa-xmark" style="color:var(--gray-400);"></i>'}</td>
+                            <td><span class="badge ${d.activo?'badge-success':'badge-danger'}">${d.activo?'Activo':'Inactivo'}</span></td>
+                            <td>
+                                <button class="action-btn" title="Ver Perfil 360°" style="background:var(--primary);color:var(--white); margin-right:4px;" onclick="showUser360('${d.numero_documento}')"><i class="fa-solid fa-eye"></i></button>
+                                <button class="action-btn reject" title="Desactivar" onclick="deleteCore('clientes', ${d.id})"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                </table></div></div>
+            </div>`;
+    }
+
+    async function renderCuentasCore(c){
+        const datos=await apiFetch('/cuentas', { headers: { 'Authorization': '' } });
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between" style="margin-bottom:24px;">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Cuentas BD Core (${datos.length})</h2>
+                </div>
+                <div class="card"><div class="table-container"><table>
+                    <thead><tr><th>N° Cuenta</th><th>Cliente</th><th>Tipo</th><th>Saldo</th><th>Creación</th><th>Acciones</th></tr></thead>
+                    <tbody>${datos.map(d=>`
+                        <tr>
+                            <td>${d.numero_cuenta}</td>
+                            <td>${d.cliente_nombre} ${d.cliente_apellido}</td>
+                            <td><span class="badge badge-info">${d.tipo_cuenta_nombre}</span></td>
+                            <td>${formatCurrency(d.saldo)}</td>
+                            <td>${formatDate(d.fecha_apertura)}</td>
+                            <td>
+                                <button class="action-btn reject" title="Cerrar" onclick="deleteCore('cuentas', ${d.id}, 'close')"><i class="fa-solid fa-lock"></i></button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                </table></div></div>
+            </div>`;
+    }
+
+    async function renderMovimientosCore(c){
+        const datos=await apiFetch('/movimientos', { headers: { 'Authorization': '' } });
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between" style="margin-bottom:24px;">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Movimientos Core Recientes (Max 100)</h2>
+                </div>
+                <div class="card"><div class="table-container"><table>
+                    <thead><tr><th>ID</th><th>Tipo</th><th>Origen</th><th>Destino</th><th>Valor</th><th>Fecha</th></tr></thead>
+                    <tbody>${datos.map(d=>`
+                        <tr>
+                            <td>${d.id}</td>
+                            <td><span class="badge badge-warning">${d.tipo_movimiento_nombre}</span></td>
+                            <td>${d.cuenta_origen_id || '-'}</td>
+                            <td>${d.cuenta_destino_id || '-'}</td>
+                            <td><strong style="${d.tipo_movimiento_id===1||d.tipo_movimiento_id===3?'color:var(--success)':'color:var(--danger)'}">${formatCurrency(d.valor)}</strong></td>
+                            <td>${formatDate(d.fecha)}</td>
+                        </tr>`).join('')}</tbody>
+                </table></div></div>
+            </div>`;
+    }
+
+    async function renderEmpleados(c){
+        const datos=await apiFetch('/empleados', { headers: { 'Authorization': '' } });
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between" style="margin-bottom:24px;">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Gestión de Empleados (${datos.length})</h2>
+                </div>
+                <div class="card"><div class="table-container"><table>
+                    <thead><tr><th>Doc</th><th>Nombre Completo</th><th>Sede</th><th>Acciones</th></tr></thead>
+                    <tbody>${datos.map(d=>`
+                        <tr>
+                            <td>${d.numero_documento}</td>
+                            <td>${d.nombre} ${d.apellido}</td>
+                            <td><span class="badge badge-info">${d.sede_nombre}</span></td>
+                            <td>
+                                <button class="action-btn reject" title="Desactivar" onclick="deleteCore('empleados', ${d.id})"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                </table></div></div>
+            </div>`;
+    }
+
+    async function renderSedes(c){
+        const datos=await apiFetch('/sedes', { headers: { 'Authorization': '' } });
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between" style="margin-bottom:24px;">
+                    <h2 style="font-size:1.4rem;font-weight:700;">Gestión de Sedes (${datos.length})</h2>
+                </div>
+                <div class="card"><div class="table-container"><table>
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Dirección</th><th>Barrio</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+                    <tbody>${datos.map(d=>`
+                        <tr>
+                            <td>${d.id}</td>
+                            <td><strong>${d.nombre}</strong></td>
+                            <td>${d.direccion}</td>
+                            <td>${d.barrio_nombre}</td>
+                            <td>${d.telefono}</td>
+                            <td>
+                                <button class="action-btn reject" title="Desactivar" onclick="deleteCore('sedes', ${d.id})"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`).join('')}</tbody>
+                </table></div></div>
+            </div>`;
+    }
+
+    async function deleteCore(entity, id, verb=''){
+        if(!confirm(`¿Seguro que deseas desactivar este registro de ${entity}?`)) return;
+        try{
+            await apiFetch(`/${entity}/${id}${verb?'/'+verb:''}`, { method: 'DELETE', headers: {'Authorization':''} });
+            showToast('Registro desactivado exitosamente');
+            navigate(entity==='cuentas' ? 'cuentas' : entity);
+        }catch(e){
+            showToast(e.message, 'error');
+        }
+    }
+
+    // NOTIFICACIONES
+    async function renderNotificaciones(c){
+        const notifs=await apiFetch('/notificaciones');
+        if(notifs.length===0){c.innerHTML='<div class="empty-state"><i class="fa-solid fa-bell"></i><h2>Sin notificaciones</h2></div>';return;}
+        c.innerHTML=`
+            <div class="fade-in-up">
+                <div class="flex-between"><h2>Notificaciones</h2>
+                    <div>
+                        <button class="btn btn-ghost btn-sm" onclick="markAllRead()"><i class="fa-solid fa-check-double"></i> Marcar todas</button>
+                        <button class="btn btn-outline btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="deleteAllNotifs()"><i class="fa-solid fa-trash"></i> Borrar todas</button>
+                    </div>
+                </div>
+                <div class="notif-list">
+                    ${notifs.map(n=>`
+                        <div class="notif-item ${n.leida?'':'unread'}" id="notif-${n.id}" onclick="markRead(${n.id},this)">
+                            <div class="notif-icon system"><i class="fa-solid fa-bell"></i></div>
+                            <div class="notif-content"><h4>${n.titulo}</h4><p>${n.mensaje}</p></div>
+                            <span class="notif-time">${formatDate(n.fecha)}</span>
+                            <button class="btn-icon" style="color:var(--gray-400);background:none;border:none;cursor:pointer;margin-left:8px;" onclick="event.stopPropagation(); deleteNotif(${n.id})" title="Borrar">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>`).join('')}
+                </div>
+            </div>`;
+    }
+    async function markRead(id,el){if(!el.classList.contains('unread'))return;try{await apiFetch(`/notificaciones/${id}/leer`,{method:'PUT'});el.classList.remove('unread');updateBadges();}catch(e){}}
+    async function markAllRead(){try{await apiFetch('/notificaciones/leer-todas',{method:'PUT'});showToast('Todas marcadas como leídas');navigate('notificaciones');updateBadges();}catch(e){}}
+    async function deleteNotif(id){try{await apiFetch(`/notificaciones/${id}`,{method:'DELETE'});document.getElementById(`notif-${id}`).remove();showToast('Notificación borrada');updateBadges();}catch(e){showToast(e.message,'error');}}
+    async function deleteAllNotifs(){if(!confirm('¿Borrar todas las notificaciones?'))return;try{await apiFetch('/notificaciones',{method:'DELETE'});showToast('Notificaciones borradas');navigate('notificaciones');updateBadges();}catch(e){showToast(e.message,'error');}}
+
+    async function updateBadges(){
+        try{
+            const sols=await apiFetch('/solicitudes');
+            const pending=sols.filter(s=>s.estado==='pendiente').length;
+            const badge=document.getElementById('sol-badge');
+            if(pending>0){badge.textContent=pending;badge.style.display='inline';}else{badge.style.display='none';}
+            const notifs=await apiFetch('/notificaciones/no-leidas');
+            const dot=document.getElementById('notif-dot');
+            dot.style.display=notifs.count>0?'block':'none';
+        }catch(e){}
+    }
+
+    // INIT
+    navigate('dashboard');
+    updateBadges();
+    setInterval(updateBadges,30000);
+    </script>
+</body>
+</html>
