@@ -5,6 +5,20 @@ require('dotenv').config();
 
 const { Sequelize } = require('sequelize');
 
+// Fallback JWT_SECRET if not set (needed for Render deploy)
+if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = 'BancoUM_S3cr3t_K3y_2026_SuperSegura!';
+    console.log('⚠️  JWT_SECRET not set in env, using default');
+}
+
+// Startup diagnostics
+console.log('--- Startup ENV Check ---');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('PORT:', process.env.PORT || 3000);
+console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+console.log('JWT_SECRET set:', !!process.env.JWT_SECRET);
+console.log('-------------------------');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
