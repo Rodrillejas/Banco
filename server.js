@@ -49,12 +49,16 @@ app.use((req, res, next) => {
 app.listen(PORT, async () => {
     console.log(`BancoUM servidor corriendo en http://localhost:${PORT}`);
     
+    // Debug: Verificar la variable de entorno para Render
+    console.log("DB URL:", process.env.DATABASE_URL);
+
     // Conexión solicitada para Render
     try {
         if (process.env.DATABASE_URL) {
             const sequelize = new Sequelize(process.env.DATABASE_URL, {
                 dialect: 'postgres',
                 protocol: 'postgres',
+                logging: console.log,
                 dialectOptions: {
                     ssl: {
                         require: true,
@@ -63,11 +67,11 @@ app.listen(PORT, async () => {
                 }
             });
             await sequelize.authenticate();
-            console.log('Conexión a Render (Sequelize) establecida con éxito.');
+            console.log('✅ Conexión a Render (Sequelize) establecida con éxito.');
         } else {
-            console.log('Ejecutando en entorno local sin DATABASE_URL.');
+            console.log('⚠️ Ejecutando en entorno local sin DATABASE_URL.');
         }
     } catch (error) {
-        console.error('No se pudo conectar a la base de datos con Sequelize:', error);
+        console.error('💥 No se pudo conectar a la base de datos con Sequelize:', error);
     }
 });
