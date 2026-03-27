@@ -896,12 +896,13 @@ select.form-control {
 }
 
 /* Tables */
-.table-container { overflow-x: auto; }
+.table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
 table { width: 100%; border-collapse: collapse; }
 th, td {
     padding: 14px 16px;
     text-align: left;
     border-bottom: 1px solid var(--gray-200);
+    white-space: nowrap;
 }
 th {
     font-weight: 600;
@@ -1239,6 +1240,10 @@ tbody tr:hover { background: var(--gray-50); }
 }
 
 @media (max-width: 576px) {
+    .landing-nav { flex-direction: column; gap: 12px; padding: 12px; height: auto; }
+    .nav-actions { width: 100%; justify-content: center; }
+    .nav-actions .btn { flex: 1; text-align: center; }
+
     .hero h1 { font-size: 2rem; }
     .hero-card { width: 280px; height: 180px; padding: 20px; }
     .hero-card-number { font-size: 1rem; }
