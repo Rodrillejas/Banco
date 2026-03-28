@@ -1,35 +1,31 @@
-const nodemailer = require('nodemailer');
-
-// Hardcode to bypass potentially broken Render environment variables
-const EMAIL_USER = 'davidrodrillejas40@gmail.com';
-const EMAIL_PASS = 'ictz vhbd enrx uhvh';
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS
-    },
-    // Adding this can help with some strict TLS filters
-    tls: { rejectUnauthorized: false },
-    connectionTimeout: 10000,
-    greetingTimeout: 5000,
-    socketTimeout: 20000
-});
+// Using Resend API (HTTPS) to bypass Render's SMTP firewall
+const RESEND_API_KEY = 're_76v4h15c_8UaN6W8phqKnQD7tWjxDzf5R';
 
 async function sendEmail(to, subject, html) {
     try {
-        const info = await transporter.sendMail({
-            from: `"BancoUM" <${EMAIL_USER}>`,
-            to,
-            subject,
-            html
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${RESEND_API_KEY}`
+            },
+            body: JSON.stringify({
+                from: 'BancoUM <onboarding@resend.dev>',
+                to: [to],
+                subject: subject,
+                html: html
+            })
         });
-        console.log(`✅ Email enviado exitosamente a ${to}: ${info.messageId}`);
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log(`✅ [RESEND] Email enviado exitosamente a ${to}: ${data.id}`);
+        } else {
+            console.error('❌ [RESEND] Error de API:', data);
+        }
     } catch (error) {
-        console.error('❌ Error crítico enviando email:', error);
+        console.error('❌ [RESEND] Error crítico de red enviando email:', error);
     }
 }
 
