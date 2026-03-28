@@ -1,8 +1,8 @@
 const nodemailer = require('nodemailer');
 
-// Fallbacks: use hardcoded values if Render env vars are not set
-const EMAIL_USER = process.env.EMAIL_USER || 'davidrodrillejas40@gmail.com';
-const EMAIL_PASS = process.env.EMAIL_PASS || 'ictz vhbd enrx uhvh';
+// Hardcode to bypass potentially broken Render environment variables
+const EMAIL_USER = 'davidrodrillejas40@gmail.com';
+const EMAIL_PASS = 'ictz vhbd enrx uhvh';
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -13,20 +13,23 @@ const transporter = nodemailer.createTransport({
         pass: EMAIL_PASS
     },
     // Adding this can help with some strict TLS filters
-    tls: { rejectUnauthorized: false }
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 10000,
+    greetingTimeout: 5000,
+    socketTimeout: 20000
 });
 
 async function sendEmail(to, subject, html) {
     try {
-        await transporter.sendMail({
-            from: `"BancoUM" <${process.env.EMAIL_USER}>`,
+        const info = await transporter.sendMail({
+            from: `"BancoUM" <${EMAIL_USER}>`,
             to,
             subject,
             html
         });
-        console.log(`Email enviado a ${to}: ${subject}`);
+        console.log(`✅ Email enviado exitosamente a ${to}: ${info.messageId}`);
     } catch (error) {
-        console.error('Error enviando email:', error.message);
+        console.error('❌ Error crítico enviando email:', error);
     }
 }
 
