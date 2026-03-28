@@ -6,31 +6,37 @@ const { sendEmail, emailTemplates } = require('../config/email');
 
 // Register new user
 exports.register = async (req, res) => {
+    const client = await pool.connect();
     try {
         const { cedula, nombre, apellido, email, telefono, direccion, fecha_nacimiento, password, tipo_producto } = req.body;
 
         // Check if user already exists
-        const existingUser = await pool.query('SELECT id FROM usuario WHERE cedula = $1 OR email = $2', [cedula, email]);
+        const existingUser = await client.query('SELECT id FROM usuario WHERE cedula = $1 OR email = $2', [cedula, email]);
         if (existingUser.rows.length > 0) {
+            client.release();
             return res.status(400).json({ error: 'Ya existe un usuario con esa cédula o email' });
         }
 
         // System password is ALWAYS required now
         if (!password) {
+            client.release();
             return res.status(400).json({ error: 'La contraseña de acceso al sistema es obligatoria' });
         }
+        
         const passwordHash = await bcrypt.hash(password, 10);
-
         let segHash = null;
         if (tipo_producto.includes('tarjeta')) {
             if (!req.body.pin_tarjeta || req.body.pin_tarjeta.length !== 4) {
+                client.release();
                 return res.status(400).json({ error: 'El PIN de la tarjeta (4 dígitos) es obligatorio' });
             }
             segHash = await bcrypt.hash(req.body.pin_tarjeta, 10);
         }
 
+        await client.query('BEGIN'); // Start transaction
+
         // Create user
-        const result = await pool.query(
+        const result = await client.query(
             `INSERT INTO usuario (cedula, nombre, apellido, email, telefono, direccion, fecha_nacimiento, password_hash, password_seguridad_hash, estado)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pendiente') RETURNING id`,
             [cedula, nombre, apellido, email, telefono, direccion, fecha_nacimiento, passwordHash, segHash]
@@ -38,25 +44,30 @@ exports.register = async (req, res) => {
         const userId = result.rows[0].id;
 
         // Create product request
-        await pool.query(
+        await client.query(
             `INSERT INTO producto_solicitud (usuario_id, tipo_producto) VALUES ($1, $2)`,
             [userId, tipo_producto]
         );
 
         // Create notification for admin
-        const adminUser = await pool.query("SELECT id FROM usuario WHERE rol = 'superadmin' LIMIT 1");
+        const adminUser = await client.query("SELECT id FROM usuario WHERE rol = 'superadmin' LIMIT 1");
         if (adminUser.rows.length > 0) {
-            await pool.query(
+            await client.query(
                 `INSERT INTO notificacion (usuario_id, tipo, titulo, mensaje) VALUES ($1, $2, $3, $4)`,
                 [adminUser.rows[0].id, 'solicitud_nueva', 'Nueva solicitud de producto',
                  `${nombre} ${apellido} (${cedula}) ha solicitado: ${tipo_producto.replace(/_/g, ' ')}`]
             );
         }
 
+        await client.query('COMMIT'); // Finish transaction
+        client.release();
+
         res.status(201).json({ message: 'Registro exitoso. Tu solicitud será revisada por el administrador.' });
     } catch (err) {
+        await client.query('ROLLBACK'); // Rollback if ANY query fails
+        client.release();
         console.error('Error en registro:', err);
-        res.status(500).json({ error: 'Error al registrar usuario' });
+        res.status(500).json({ error: 'Error al registrar usuario. Inténtalo de nuevo.' });
     }
 };
 
@@ -219,6 +230,9 @@ exports.forgotPassword = async (req, res) => {
         const baseUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
         const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
         const template = emailTemplates.recuperarContrasena(user.nombre, resetUrl);
+        // Fallback: Dump link to console just in case Render gets blocked by Gmail
+        console.log(`\n🔑 [RECUPERACIÓN] Enlace generado para ${email}:\n${resetUrl}\n`);
+        
         // Non-blocking: respond immediately, email sends in background
         sendEmail(email, template.subject, template.html)
             .catch(e => console.error('Forgot-password email failed (non-fatal):', e.message));
