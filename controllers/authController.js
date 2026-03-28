@@ -219,7 +219,9 @@ exports.forgotPassword = async (req, res) => {
         const baseUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
         const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
         const template = emailTemplates.recuperarContrasena(user.nombre, resetUrl);
-        await sendEmail(email, template.subject, template.html);
+        // Non-blocking: respond immediately, email sends in background
+        sendEmail(email, template.subject, template.html)
+            .catch(e => console.error('Forgot-password email failed (non-fatal):', e.message));
 
         res.json({ message: 'Si el correo está registrado, recibirás un enlace de recuperación.' });
     } catch (err) {

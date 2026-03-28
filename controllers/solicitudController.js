@@ -93,8 +93,10 @@ exports.aprobar = async (req, res) => {
             emailData = emailTemplates.bienvenidaSoloTarjeta(sol.nombre, urlDestino);
         }
 
+        // Send email based on decision (non-blocking - don't let email failure break the approval)
         if (emailData) {
-            await sendEmail(sol.email, emailData.subject, emailData.html);
+            sendEmail(sol.email, emailData.subject, emailData.html)
+                .catch(e => console.error('Email send failed (non-fatal):', e.message));
         }
 
         // Notify user
@@ -135,9 +137,10 @@ exports.rechazar = async (req, res) => {
             await pool.query(`UPDATE usuario SET estado = 'rechazado' WHERE id = $1`, [sol.uid]);
         }
 
-        // Send rejection email
+        // Send rejection email - non-blocking
         const emailData = emailTemplates.rechazado(sol.nombre);
-        await sendEmail(sol.email, emailData.subject, emailData.html);
+        sendEmail(sol.email, emailData.subject, emailData.html)
+            .catch(e => console.error('Rejection email failed (non-fatal):', e.message));
 
         // Notify user
         await pool.query(
