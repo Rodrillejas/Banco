@@ -427,9 +427,14 @@
                              ? parseFloat(document.getElementById('cupo-input').value) : null;
 
         try{
-            await apiFetch(`/solicitudes/${id}/aprobar`,{method:'PUT',body:JSON.stringify({decision, cupo_tarjeta})});
-            showToast('Solicitud aprobada y correo enviado');
+            const data = await apiFetch(`/solicitudes/${id}/aprobar`,{method:'PUT',body:JSON.stringify({decision, cupo_tarjeta})});
             closeModal('approval-modal');
+            
+            if (data.linkDestino) {
+                prompt('✅ Solicitud aprobada.\n\n⚠️ IMPORTANTE: Si los correos están fallando en Render, copia este enlace y envíaselo al usuario manualmente:', data.linkDestino);
+            } else {
+                showToast('Solicitud aprobada exitosamente');
+            }
             navigate('solicitudes');
         }catch(e){showToast(e.message,'error');}
     }

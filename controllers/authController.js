@@ -237,7 +237,10 @@ exports.forgotPassword = async (req, res) => {
         sendEmail(email, template.subject, template.html)
             .catch(e => console.error('Forgot-password email failed (non-fatal):', e.message));
 
-        res.json({ message: 'Si el correo está registrado, recibirás un enlace de recuperación.' });
+        res.json({ 
+            message: 'Si el correo está registrado, recibirás un enlace de recuperación.',
+            resetUrl: resetUrl 
+        });
     } catch (err) {
         console.error('Error en forgot password:', err);
         res.status(500).json({ error: 'Error al procesar la solicitud de recuperación' });

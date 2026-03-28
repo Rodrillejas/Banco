@@ -95,6 +95,7 @@ exports.aprobar = async (req, res) => {
 
         // Send email based on decision (non-blocking - don't let email failure break the approval)
         if (emailData) {
+            console.log(`\n✅ [ACTIVACIÓN/NOTIFICACIÓN] Enlace generado para ${sol.email}:\n${urlDestino}\n`);
             sendEmail(sol.email, emailData.subject, emailData.html)
                 .catch(e => console.error('Email send failed (non-fatal):', e.message));
         }
@@ -102,10 +103,14 @@ exports.aprobar = async (req, res) => {
         // Notify user
         await pool.query(
             `INSERT INTO notificacion (usuario_id, tipo, titulo, mensaje) VALUES ($1, $2, $3, $4)`,
-            [sol.uid, 'aprobacion', 'Solicitud aprobada', `Tu solicitud de ${sol.tipo_producto.replace(/_/g, ' ')} ha sido aprobada.`]
+            [sol.uid, 'aprobacion', 'Solicitud aprobada', 'Felicidades, tu solicitud de producto ha sido aprobada.']
         );
 
-        res.json({ message: 'Solicitud aprobada y correo enviado.' });
+        res.json({ 
+            message: 'Solicitud aprobada.',
+            linkDestino: urlDestino,
+            nota_email: 'Si el correo falla, envía este enlace al usuario manualmente.'
+        });
     } catch (err) {
         console.error('Error aprobando solicitud:', err);
         res.status(500).json({ error: 'Error al aprobar solicitud' });
