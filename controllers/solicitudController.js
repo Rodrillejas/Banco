@@ -34,8 +34,10 @@ exports.aprobar = async (req, res) => {
 
         const sol = solicitud.rows[0];
         const token = uuidv4();
-        const activarUrl = `${process.env.FRONTEND_URL}/activar.html?token=${token}`;
-        const loginUrl = `${process.env.FRONTEND_URL}/login.html`;
+        // Use FRONTEND_URL env var if set, otherwise infer from request origin
+        const baseUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+        const activarUrl = `${baseUrl}/activar.html?token=${token}`;
+        const loginUrl = `${baseUrl}/login.html`;
 
         // Update solicitud
         await pool.query(

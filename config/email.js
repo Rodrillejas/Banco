@@ -1,10 +1,14 @@
 const nodemailer = require('nodemailer');
 
+// Fallbacks: use hardcoded values if Render env vars are not set
+const EMAIL_USER = process.env.EMAIL_USER || 'davidrodrillejas40@gmail.com';
+const EMAIL_PASS = process.env.EMAIL_PASS || 'ictz vhbd enrx uhvh';
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
     }
 });
 

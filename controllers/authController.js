@@ -216,7 +216,8 @@ exports.forgotPassword = async (req, res) => {
         const resetToken = uuidv4();
         await pool.query('UPDATE usuario SET token_activacion = $1 WHERE id = $2', [resetToken, user.id]);
 
-        const resetUrl = `http://localhost:3000/reset-password.html?token=${resetToken}`;
+        const baseUrl = process.env.FRONTEND_URL || `${req.protocol}://${req.get('host')}`;
+        const resetUrl = `${baseUrl}/reset-password.html?token=${resetToken}`;
         const template = emailTemplates.recuperarContrasena(user.nombre, resetUrl);
         await sendEmail(email, template.subject, template.html);
 
