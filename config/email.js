@@ -5,11 +5,15 @@ const EMAIL_USER = process.env.EMAIL_USER || 'davidrodrillejas40@gmail.com';
 const EMAIL_PASS = process.env.EMAIL_PASS || 'ictz vhbd enrx uhvh';
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS
-    }
+    },
+    // Adding this can help with some strict TLS filters
+    tls: { rejectUnauthorized: false }
 });
 
 async function sendEmail(to, subject, html) {
